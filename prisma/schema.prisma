@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-go"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String     @id @default(uuid())
+  name     String
+  email    String     @unique
+  password String
+  role     String // "admin", "vendor", "customer"
+  Vendor   Vendor[]
+  Order    Order[]
+  Wishlist Wishlist[]
+}
+
+model Vendor {
+  id            String    @id @default(uuid())
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
+  business_name String
+  tax_pin       String    @unique
+  approved      Boolean   @default(false)
+  Product       Product[]
+}
+
+model Product {
+  id       String     @id @default(uuid())
+  vendor   Vendor     @relation(fields: [vendorId], references: [id])
+  vendorId String
+  name     String
+  price    Float
+  category String
+  imageUrl String
+  Order    Order[]
+  Wishlist Wishlist[]
+}
+
+model Order {
+  id        String  @id @default(uuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  status    String // "pending", "shipped", "completed"
+}
+
+model Wishlist {
+  id        String  @id @default(uuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+}

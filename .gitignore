@@ -1,0 +1,47 @@
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+*.a
+
+# Dependency directories (if using vendoring)
+vendor/
+
+# Go modules cache
+/go/pkg/mod/
+
+# Binaries
+bin/
+dist/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+*.DS_Store
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.iml
+
+# Environment files (secrets, credentials)
+.env
+.env.local
+.env.*.local
+config.json
+secrets.json
+
+# Test coverage data
+*.cover
+*.test
+
+# Git hooks
+.hooks/
+
+# Docker
+docker-compose.override.yml

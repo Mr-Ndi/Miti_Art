@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"your_project/controllers"
-	"your_project/prisma/db"
+	"MITI_ART/controllers"
+	"MITI_ART/prisma/db"
 
 	"github.com/gin-gonic/gin"
 )

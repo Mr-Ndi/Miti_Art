@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"your_project/prisma/db"
-	"your_project/services"
+	"MITI_ART/prisma/db"
+	"MITI_ART/services"
 
 	"github.com/gin-gonic/gin"
 )

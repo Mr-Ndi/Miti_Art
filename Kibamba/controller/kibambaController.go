@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	"MITI_ART/prisma/db"
-	"MITI_ART/services"
+	"MITI_ART/Kibamba/services"
+	"MITI_ART/prisma/miti_art"
 
 	"github.com/gin-gonic/gin"
 )
 
-func LoginHandler(c *gin.Context, prisma *db.PrismaClient) {
+func LoginHandler(c *gin.Context, prisma *miti_art.PrismaClient) {
 	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`

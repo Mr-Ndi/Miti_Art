@@ -3,20 +3,18 @@ package main
 import (
 	"fmt"
 
-	"MITI_ART/prisma/db"
-	"MITI_ART/routes"
-	"MITI_ART/services"
+	"MITI_ART/Kibamba/routes"
+	"MITI_ART/prisma/miti_art"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	prisma := db.NewClient()
+	r.SetTrustedProxies([]string{})
+	prisma := miti_art.NewClient()
 	defer prisma.Disconnect()
-
-	// Seed admin user
-	services.SeedAdmin(prisma)
 
 	// Setup routes
 	routes.AdminRoutes(r, prisma)

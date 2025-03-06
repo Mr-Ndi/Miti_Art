@@ -2,29 +2,24 @@ package services
 
 import (
 	utils "MITI_ART/Utils"
+	"os"
 
 	"MITI_ART/prisma/miti_art"
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"errors"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/argon2"
 )
 
-// Generate a random salt (16 bytes)
-func generateSalt() (string, error) {
-	salt := make([]byte, 16)
-	_, err := rand.Read(salt)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(salt), nil
+func init() {
+	_ = godotenv.Load()
 }
 
 // Hash password using Argon2
 func hashPassword(password string) (string, string, error) {
-	salt, err := generateSalt()
+	salt, err := utils.GenerateSalt()
 	if err != nil {
 		return "", "", err
 	}
@@ -59,8 +54,10 @@ func checkPasswordHash(password, hash, salt string) bool {
 // Seed an admin user (Creates if absent)
 func SeedAdmin(prisma *miti_art.PrismaClient) {
 	ctx := context.Background()
-	adminEmail := "admin@example.com"   // Replace with actual admin email
-	adminPassword := "AdminPassword123" // Replace with a secure password
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	firstName := os.Getenv("FirstName")
+	otherName := os.Getenv("OtherName")
 
 	existingAdmin, err := prisma.User.FindUnique(
 		miti_art.User.Email.Equals(adminEmail),
@@ -73,6 +70,8 @@ func SeedAdmin(prisma *miti_art.PrismaClient) {
 		}
 
 		_, err = prisma.User.CreateOne(
+			miti_art.User.FirstName.Set(firstName),
+			miti_art.User.OtherName.Set(otherName),
 			miti_art.User.Email.Set(adminEmail),
 			miti_art.User.Password.Set(hashedPassword),
 			miti_art.User.Salt.Set(salt),

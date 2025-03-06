@@ -8,5 +8,8 @@ import (
 )
 
 func AdminRoutes(router *gin.Engine, prisma *miti_art.PrismaClient) {
-	router.POST("/login", func(c *gin.Context) { controllers.LoginHandler(c, prisma) })
+	admin := router.Group("/admin")
+	{
+		admin.POST("/login", func(c *gin.Context) { controllers.LoginHandler(c, prisma) })
+	}
 }

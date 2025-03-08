@@ -30,7 +30,7 @@ func init() {
 }
 
 // Generate JWT token
-func GenerateToken(payload []string) (string, error) {
+func GenerateToken(payload map[string]interface{}) (string, error) {
 	if secret == "" {
 		return "", errors.New("SECRET_KEY is not set")
 	}

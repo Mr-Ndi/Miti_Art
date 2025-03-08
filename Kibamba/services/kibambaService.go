@@ -115,7 +115,7 @@ func Login(ctx context.Context, prisma *miti_art.PrismaClient, email, password s
 		return "", errors.New("invalid credentials / Wrong password")
 	}
 
-	payload := []string{user.Email}
+	payload := map[string]interface{}{"email": user.Email, "role": user.Role}
 	token, err := utils.GenerateToken(payload)
 	if err != nil {
 		fmt.Println("Token generation failed:", err)

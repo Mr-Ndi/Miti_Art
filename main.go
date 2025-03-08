@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
-
 	"MITI_ART/Kibamba/routes"
-	"MITI_ART/prisma/miti_art"
+	database "MITI_ART/configure"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +12,9 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.SetTrustedProxies([]string{})
-	prisma := miti_art.NewClient()
+
+	// database stuffs
+	prisma := database.InitDB()
 	defer prisma.Disconnect()
 
 	// Setup routes

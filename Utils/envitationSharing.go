@@ -6,40 +6,60 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-
 	"gopkg.in/gomail.v2"
+)
+
+var (
+	sender    string
+	formLink  string
+	emailPass string
+	secretKey string
 )
 
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file:", err)
+		log.Println("Error loading .env file:", err)
 	} else {
-		fmt.Println(".env file loaded successfully.")
+		log.Println(".env file loaded successfully.")
 	}
 
-	secret = os.Getenv("SECRET_KEY")
+	secretKey = os.Getenv("SECRET_KEY")
+	sender = os.Getenv("ADMIN_EMAIL")
+	formLink = os.Getenv("LINK")
+	emailPass = os.Getenv("ADMIN_EMAIL_PASS")
 
-	if secret == "" {
-		fmt.Println("SECRET_KEY is not set! Check your .env file.")
-	} else {
-		fmt.Println("SECRET_KEY loaded successfully:", secret)
+	if secretKey == "" {
+		log.Println("Warning: SECRET_KEY is not set! Check your .env file.")
+	}
+	if formLink == "" || sender == "" || emailPass == "" {
+		log.Fatal("Error: Missing required environment variables. Please check your .env file.")
 	}
 }
 
-var sender string = os.Getenv("SENDER_EMAIL")
-var receiver string = os.Getenv(""RECEIDERa)
-func envite() {
-	m := gomail.NewMessage()
-	m.SetHeader("From", "your-email@gmail.com")
-	m.SetHeader("To", "recipient@example.com")
-	m.SetHeader("Subject", "Hello from Golang!")
-	m.SetBody("text/plain", "This is a test email from Go.")
+func Invite(receiver string, ventureName string) {
+	emailBody := fmt.Sprintf(
+		"Dear %s,\n\n"+
+			"Thank you for reaching out regarding access to Miti Art. To proceed, please fill out the required details in the form linked below:\n\n"+
+			"%s\n\n"+
+			"This form will help us process your request efficiently. If you have any questions while completing it, feel free to reply to this email.\n\n"+
+			"We look forward to reviewing your submission.\n\n"+
+			"Best regards,\n"+
+			"Poli Ninshuti Ndiramiye\n"+
+			"Miti Art Super-user\n"+
+			"+250 791 287 640",
+		ventureName, formLink)
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "your-email@gmail.com", "your-email-password")
+	m := gomail.NewMessage()
+	m.SetHeader("From", sender)
+	m.SetHeader("To", receiver)
+	m.SetHeader("Subject", "Hello!! You are invited to join Miti Art")
+	m.SetBody("text/plain", emailBody)
+
+	d := gomail.NewDialer("smtp.gmail.com", 587, sender, emailPass)
 
 	if err := d.DialAndSend(m); err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to send email:", err)
 	}
 
 	log.Println("Email sent successfully!")

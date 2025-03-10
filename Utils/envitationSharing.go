@@ -37,7 +37,7 @@ func init() {
 	}
 }
 
-func Invite(receiver string, ventureName string) {
+func Invite(receiver string, ventureName string) bool {
 	emailBody := fmt.Sprintf(
 		"Dear %s,\n\n"+
 			"Thank you for reaching out regarding access to Miti Art. To proceed, please fill out the required details in the form linked below:\n\n"+
@@ -59,8 +59,10 @@ func Invite(receiver string, ventureName string) {
 	d := gomail.NewDialer("smtp.gmail.com", 587, sender, emailPass)
 
 	if err := d.DialAndSend(m); err != nil {
-		log.Fatal("Failed to send email:", err)
+		log.Println("Failed to send email:", err)
+		return false
 	}
 
 	log.Println("Email sent successfully!")
+	return true
 }

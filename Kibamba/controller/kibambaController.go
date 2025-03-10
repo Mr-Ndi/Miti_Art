@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"MITI_ART/Kibamba/services"
+	utils "MITI_ART/Utils"
 	"MITI_ART/prisma/miti_art"
 
 	"github.com/gin-gonic/gin"
@@ -28,4 +29,21 @@ func LoginHandler(c *gin.Context, prisma *miti_art.PrismaClient) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+type InviteRequest struct {
+	VentureEmail string `json:"ventureEmail" binding:"required"`
+	VentureName  string `json:"ventureName" binding:"required"`
+}
+
+func InvitationHandler(c *gin.Context) {
+	var req InviteRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data!"})
+		return
+	}
+	result := utils.Invite(req.VentureEmail, req.VentureName)
+
+	c.JSON(http.StatusOK, gin.H{"status": result})
 }

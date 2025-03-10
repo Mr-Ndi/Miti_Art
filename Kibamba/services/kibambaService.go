@@ -19,20 +19,6 @@ func init() {
 	_ = godotenv.Load()
 }
 
-// Hash password using Argon2
-func hashPassword(password string) (string, string, error) {
-	saltBytes, err := utils.GenerateSalt()
-	if err != nil {
-		return "", "", err
-	}
-
-	hashed := argon2.IDKey([]byte(password), saltBytes, 1, 64*1024, 4, 32)
-	hash := base64.StdEncoding.EncodeToString(hashed)
-	salt := base64.StdEncoding.EncodeToString(saltBytes)
-
-	return hash, salt, nil
-}
-
 // Verify password using Argon2
 func checkPasswordHash(password, hash, salt string) bool {
 	saltBytes, err := base64.StdEncoding.DecodeString(salt)
@@ -65,7 +51,7 @@ func SeedAdmin(prisma *miti_art.PrismaClient) {
 	).Exec(ctx)
 
 	if err != nil || existingAdmin == nil {
-		hashedPassword, salt, err := hashPassword(adminPassword)
+		hashedPassword, salt, err := utils.HashPassword(adminPassword)
 		if err != nil {
 			panic("Failed to hash admin password: " + err.Error())
 		}

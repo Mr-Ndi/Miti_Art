@@ -93,13 +93,17 @@ func DebugHashPassword(password, salt string) string {
 }
 
 // Login function
-func Login(ctx context.Context, prisma *miti_art.PrismaClient, email, password string) (string, error) {
+func Login(ctx context.Context, prisma *miti_art.PrismaClient, email string, password string) (string, error) {
 	user, err := prisma.User.FindUnique(
 		miti_art.User.Email.Equals(email),
 	).Exec(ctx)
 
 	if err != nil || user == nil {
-		SeedAdmin(prisma)
+		adminEmail := os.Getenv("ADMIN_EMAIL")
+		adminPassword := os.Getenv("ADMIN_PASSWORD")
+		if email == adminEmail && password == adminPassword {
+			SeedAdmin(prisma)
+		}
 
 		user, err = prisma.User.FindUnique(
 			miti_art.User.Email.Equals(email),

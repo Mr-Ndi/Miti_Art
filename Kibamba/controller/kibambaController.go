@@ -37,13 +37,21 @@ type InviteRequest struct {
 }
 
 func InvitationHandler(c *gin.Context) {
+	userEmail, exist := c.Get("userEmail")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Acces"})
+		return
+	}
 	var req InviteRequest
-
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data!"})
 		return
 	}
 	result := utils.Invite(req.VentureEmail, req.VentureName)
 
-	c.JSON(http.StatusOK, gin.H{"status": result})
+	c.JSON(http.StatusOK, gin.H{
+		"status":  result,
+		"message": "Invitation sent succesfully",
+		"sent_By": userEmail,
+	})
 }

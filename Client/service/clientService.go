@@ -1,36 +1,36 @@
 package service
 
 import (
-	utils "MITI_ART/Utils"
+	Utils "MITI_ART/Utils"
 	"MITI_ART/prisma/miti_art"
 	"context"
 	"errors"
 )
 
-// RegisterClient registers a new client (customer)
-func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFirstName string, ClientOtherName string, ClientPassword string) error {
+// RegisterClient registers a new client
+func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFirstName string, ClientOtherName string, ClientPassword string) (string, error) {
 	ctx := context.Background()
 
-	// Check if the user already exists
+	// Check if user already exists
 	existingUser, err := prisma.User.FindUnique(
 		miti_art.User.Email.Equals(ClientEmail),
 	).Exec(ctx)
 
-	if err != nil {
-		return errors.New("database error: " + err.Error())
+	if err != nil && err.Error() != "ErrNotFound" {
+		return "", errors.New("database error: " + err.Error())
 	}
 
 	if existingUser != nil {
-		return errors.New("email already registered")
+		return "", errors.New("user with that email already registered")
 	}
 
-	// Hash the password user yatanze
-	hashedPassword, salt, err := utils.HashPassword(ClientPassword)
+	// Hash the password
+	hashedPassword, salt, err := Utils.HashPassword(ClientPassword)
 	if err != nil {
-		return errors.New("failed to hash password: " + err.Error())
+		return "", errors.New("failed to hash password")
 	}
 
-	// Create new user as a "customer" role muri database
+	// Create new user
 	_, err = prisma.User.CreateOne(
 		miti_art.User.FirstName.Set(ClientFirstName),
 		miti_art.User.OtherName.Set(ClientOtherName),
@@ -41,8 +41,8 @@ func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFir
 	).Exec(ctx)
 
 	if err != nil {
-		return errors.New("failed to register user: " + err.Error())
+		return "", errors.New("failed to register user: " + err.Error())
 	}
 
-	return nil
+	return "User registered successfully", nil
 }

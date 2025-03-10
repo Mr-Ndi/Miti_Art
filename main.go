@@ -1,7 +1,8 @@
 package main
 
 import (
-	"MITI_ART/Kibamba/routes"
+	client "MITI_ART/Client/routes"
+	kibamba "MITI_ART/Kibamba/routes"
 	database "MITI_ART/configure"
 	"fmt"
 
@@ -18,7 +19,8 @@ func main() {
 	defer prisma.Disconnect()
 
 	// Setup routes
-	routes.AdminRoutes(r, prisma)
+	kibamba.AdminRoutes(r, prisma)
+	client.ClientRoutes(r, prisma)
 
 	fmt.Println("Server is running on port 8080")
 	r.Run(":8080")

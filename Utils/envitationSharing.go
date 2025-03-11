@@ -37,9 +37,10 @@ func init() {
 	}
 }
 
-func Invite(receiver string, ventureName string) bool {
+func Invite(receiver string, vendorFirstName string, vendorOtherName string, token string) bool {
+	link := fmt.Sprintf("%s?token=%s", formLink, token)
 	emailBody := fmt.Sprintf(
-		"Dear %s,\n\n"+
+		"Dear %s %s,\n\n"+
 			"Thank you for reaching out regarding access to Miti Art. To proceed, please fill out the required details in the form linked below:\n\n"+
 			"%s\n\n"+
 			"This form will help us process your request efficiently. If you have any questions while completing it, feel free to reply to this email.\n\n"+
@@ -48,7 +49,7 @@ func Invite(receiver string, ventureName string) bool {
 			"Poli Ninshuti Ndiramiye\n"+
 			"Miti Art Super-user\n"+
 			"+250 791 287 640",
-		ventureName, formLink)
+		vendorOtherName, vendorFirstName, link)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", sender)

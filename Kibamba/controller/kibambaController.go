@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"MITI_ART/Kibamba/services"
@@ -32,8 +33,9 @@ func LoginHandler(c *gin.Context, prisma *miti_art.PrismaClient) {
 }
 
 type InviteRequest struct {
-	VentureEmail string `json:"ventureEmail" binding:"required"`
-	VentureName  string `json:"ventureName" binding:"required"`
+	VendorEmail     string `json:"VendorEmail" binding:"required"`
+	VendorFirstName string `json:"VendorFirstName" binding:"required"`
+	VendorOtherName string `json:"VendorOtherName" binding:"required"`
 }
 
 func InvitationHandler(c *gin.Context) {
@@ -47,7 +49,14 @@ func InvitationHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data!"})
 		return
 	}
-	result := utils.Invite(req.VentureEmail, req.VentureName)
+	payload := map[string]interface{}{"email": req.VendorEmail, "VendoFirstName": req.VendorFirstName, "vendorOtherName": req.VendorOtherName, "role": "Vendor"}
+	token, err := utils.GenerateToken(payload)
+
+	if err != nil {
+		fmt.Println("Token generation failed:", err)
+		return
+	}
+	result := utils.Invite(req.VendorEmail, req.VendorFirstName, req.VendorOtherName, token)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  result,

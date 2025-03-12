@@ -44,7 +44,7 @@ func GenerateToken(payload map[string]interface{}) (string, error) {
 }
 
 // Validate the JWT token
-func ValidateToken(tokenString string) (string, error) {
+func ValidateToken(tokenString string) (map[string]interface{}, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid token signing method")
@@ -53,14 +53,15 @@ func ValidateToken(tokenString string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
-	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if payload, exists := claims["payload"].(string); exists {
-			return payload, nil
-		}
-		return "", errors.New("invalid token payload")
+		return nil, err
 	}
 
-	return "", errors.New("invalid token")
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if payload, exists := claims["payload"].(map[string]interface{}); exists {
+			return payload, nil
+		}
+		return nil, errors.New("invalid token payload")
+	}
+
+	return nil, errors.New("invalid token")
 }

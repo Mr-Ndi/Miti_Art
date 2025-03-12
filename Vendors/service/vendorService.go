@@ -8,12 +8,12 @@ import (
 )
 
 // RegisterClient registers a new client
-func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFirstName string, ClientOtherName string, ClientPassword string) (string, error) {
+func RegisterVendor(prisma, VendorEmail string, VendorFirstName string, VendorOtherName string, VendorPassword string, VendorTin int) (string, error) {
 	ctx := context.Background()
 
 	// Check if user already exists
 	existingUser, err := prisma.User.FindUnique(
-		miti_art.User.Email.Equals(ClientEmail),
+		miti_art.User.Email.Equals(VendorEmail),
 	).Exec(ctx)
 
 	if err != nil && err.Error() != "ErrNotFound" {
@@ -25,19 +25,19 @@ func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFir
 	}
 
 	// Hash the password
-	hashedPassword, salt, err := Utils.HashPassword(ClientPassword)
+	hashedPassword, salt, err := Utils.HashPassword(VendorPassword)
 	if err != nil {
 		return "", errors.New("failed to hash password")
 	}
 
 	// Create new user
 	_, err = prisma.User.CreateOne(
-		miti_art.User.FirstName.Set(ClientFirstName),
-		miti_art.User.OtherName.Set(ClientOtherName),
-		miti_art.User.Email.Set(ClientEmail),
+		miti_art.User.FirstName.Set(VendorFirstName),
+		miti_art.User.OtherName.Set(VendorOtherName),
+		miti_art.User.Email.Set(VendorEmail),
 		miti_art.User.Password.Set(hashedPassword),
 		miti_art.User.Salt.Set(salt),
-		miti_art.User.Role.Set("customer"),
+		miti_art.User.Role.Set("vendor"),
 	).Exec(ctx)
 
 	if err != nil {

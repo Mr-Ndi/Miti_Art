@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -35,16 +34,8 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		var claimsMap map[string]interface{}
-		err = json.Unmarshal([]byte(claims), &claimsMap)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
-			c.Abort()
-			return
-		}
-
-		email, emailExists := claimsMap["email"].(string)
-		role, roleExists := claimsMap["role"].(string)
+		email, emailExists := claims["email"].(string)
+		role, roleExists := claims["role"].(string)
 
 		if !emailExists || !roleExists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})

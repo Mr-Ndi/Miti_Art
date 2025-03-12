@@ -8,7 +8,7 @@ import (
 )
 
 // RegisterClient registers a new client
-func RegisterVendor(prisma, VendorEmail string, VendorFirstName string, VendorOtherName string, VendorPassword string, VendorTin int) (string, error) {
+func RegisterVendor(prisma *miti_art.PrismaClient, VendorEmail string, VendorFirstName string, VendorOtherName string, VendorPassword string, VendorTin int) (string, error) {
 	ctx := context.Background()
 
 	// Check if user already exists
@@ -44,5 +44,5 @@ func RegisterVendor(prisma, VendorEmail string, VendorFirstName string, VendorOt
 		return "", errors.New("failed to register user: " + err.Error())
 	}
 
-	return "User registered successfully", nil
+	return "Vendor registered successfully", nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	client "MITI_ART/Client/routes"
 	kibamba "MITI_ART/Kibamba/routes"
+	vendor "MITI_ART/Vendors/routes"
 	database "MITI_ART/configure"
 	"fmt"
 
@@ -21,6 +22,7 @@ func main() {
 	// Setup routes
 	kibamba.AdminRoutes(r, prisma)
 	client.ClientRoutes(r, prisma)
+	vendor.VendorsRoutes(r, prisma)
 
 	fmt.Println("Server is running on port 8080")
 	r.Run(":8080")

@@ -60,8 +60,8 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 	}
 
 	// Return success response
-	// c.JSON(http.StatusCreated, gin.H{
-	// 	"message": message,
-	// 	"email":   req.ClientEmail,
-	// })
+	c.JSON(http.StatusCreated, gin.H{
+		"message":      message,
+		"Vendor email": VendorEmail,
+	})
 }

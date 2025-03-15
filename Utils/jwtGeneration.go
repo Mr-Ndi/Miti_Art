@@ -35,9 +35,11 @@ func GenerateToken(payload map[string]interface{}) (string, error) {
 		return "", errors.New("SECRET_KEY is not set")
 	}
 
+	expiration := time.Now().Add(time.Hour).Unix()
+	payload["exp"] = expiration
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"payload": payload,
-		"exp":     time.Now().Add(time.Hour).Unix(),
 	})
 
 	return token.SignedString([]byte(secret))
@@ -45,23 +47,26 @@ func GenerateToken(payload map[string]interface{}) (string, error) {
 
 // Validate the JWT token
 func ValidateToken(tokenString string) (map[string]interface{}, error) {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("invalid token signing method")
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
 
-	if err != nil {
-		return nil, err
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid or expired token")
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if payload, exists := claims["payload"].(map[string]interface{}); exists {
-			return payload, nil
-		}
-		return nil, errors.New("invalid token payload")
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims structure")
 	}
 
-	return nil, errors.New("invalid token")
+	payload, ok := claims["payload"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("missing payload in token")
+	}
+
+	return payload, nil
 }

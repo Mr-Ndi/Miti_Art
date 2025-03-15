@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"MITI_ART/Kibamba/services"
@@ -49,11 +48,11 @@ func InvitationHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data!"})
 		return
 	}
-	payload := map[string]interface{}{"email": req.VendorEmail, "VendoFirstName": req.VendorFirstName, "vendorOtherName": req.VendorOtherName, "role": "Vendor"}
+	payload := map[string]interface{}{"VendorEmail": req.VendorEmail, "VendorFirstName": req.VendorFirstName, "VendorOtherName": req.VendorOtherName, "role": "Vendor"}
 	token, err := utils.GenerateToken(payload)
 
 	if err != nil {
-		fmt.Println("Token generation failed:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 	result := utils.Invite(req.VendorEmail, req.VendorFirstName, req.VendorOtherName, token)

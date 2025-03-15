@@ -8,9 +8,9 @@ import (
 )
 
 func VendorsRoutes(router *gin.Engine, prisma *miti_art.PrismaClient) {
-	user := router.Group("/vendor")
+	vendor := router.Group("/vendor")
 	{
-		user.POST("/register", func(c *gin.Context) {
+		vendor.POST("/register", func(c *gin.Context) {
 			controller.RegisterHandle(c, prisma)
 		})
 	}

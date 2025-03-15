@@ -65,5 +65,6 @@ func Invite(receiver string, vendorFirstName string, vendorOtherName string, tok
 	}
 
 	log.Println("Email sent successfully!")
+	// log.Println(token)
 	return true
 }

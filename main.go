@@ -19,7 +19,7 @@ func main() {
 	prisma := database.InitDB()
 	defer prisma.Disconnect()
 
-	// Setup routes
+	// Routes setup
 	kibamba.AdminRoutes(r, prisma)
 	client.ClientRoutes(r, prisma)
 	vendor.VendorsRoutes(r, prisma)

@@ -6,52 +6,65 @@ import (
 	"MITI_ART/prisma/miti_art"
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterHandle handles function
 func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
-
 	vendorToken := c.GetHeader("Authorization")
-	if vendorToken == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Unauthorised Token is required"})
+	tokenParts := strings.Split(vendorToken, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token format"})
 		return
 	}
 
-	// extrating the payload if token is valid
-	payload, error := utils.ValidateToken(vendorToken)
-	if error != nil {
+	token := tokenParts[1]
+	payload, err := utils.ValidateToken(token)
+	if err != nil {
+		fmt.Println("Token validation error:", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid or expired token"})
 		return
 	}
 
-	// gettin what we nees from the payload
-	VendorEmail, emailOk := payload["vendorEmail"].(string)
+	VendorEmail, emailOk := payload["VendorEmail"].(string)
 	VendorFirstName, firstNameOk := payload["VendorFirstName"].(string)
-	VendorOtherName, otheNameOk := payload["VendorOtherName"].(string)
+	VendorOtherName, otherNameOk := payload["VendorOtherName"].(string)
+	role, roleOk := payload["role"].(string)
 
-	if !emailOk || !firstNameOk || !otheNameOk {
-		fmt.Println("Vendor quirements available aren't enought")
+	if !emailOk || !firstNameOk || !otherNameOk || !roleOk {
+		fmt.Println("Token payload missing required fields")
+		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token payload"})
+		return
 	}
-	// Request body
+
+	exp, expOk := payload["exp"].(float64)
+	if !expOk {
+		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token payload cz it is missing expiration time"})
+		return
+	}
+
+	currentTimestamp := float64(time.Now().Unix())
+	if exp < currentTimestamp {
+		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Token has expired"})
+		return
+	}
+
 	var req struct {
 		VendorPassword string `json:"vendorPassword" binding:"required"`
 		VendorTin      int    `json:"vendorTin" binding:"required"`
 	}
 
-	// Validate request body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
 
-	// Call service function
-	message, err := service.RegisterVendor(prisma, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, req.VendorTin)
+	message, err := service.RegisterVendor(prisma, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin)
 
-	// Handle service response
 	if err != nil {
-		if err.Error() == "email already registered" {
+		if err.Error() == "user with that email already registered" {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -59,7 +72,6 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 		return
 	}
 
-	// Return success response
 	c.JSON(http.StatusCreated, gin.H{
 		"message":      message,
 		"Vendor email": VendorEmail,

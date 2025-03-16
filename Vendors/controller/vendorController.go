@@ -54,6 +54,7 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 	var req struct {
 		VendorPassword string `json:"vendorPassword" binding:"required"`
 		VendorTin      int    `json:"vendorTin" binding:"required"`
+		ShopName       string `json:"ShopName" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -61,7 +62,7 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 		return
 	}
 
-	message, err := service.RegisterVendor(prisma, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin)
+	message, err := service.RegisterVendor(prisma, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin, req.ShopName)
 
 	if err != nil {
 		if err.Error() == "user with that email already registered" {

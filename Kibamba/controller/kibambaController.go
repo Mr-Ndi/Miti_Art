@@ -39,6 +39,7 @@ type InviteRequest struct {
 
 func InvitationHandler(c *gin.Context) {
 	userEmail, exist := c.Get("userEmail")
+	_ = userEmail //Guhagarika Complains za interpreter
 	if !exist {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Acces"})
 		return
@@ -60,6 +61,6 @@ func InvitationHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  result,
 		"message": "Invitation sent succesfully",
-		"sent_By": userEmail,
+		"sent to": req.VendorEmail,
 	})
 }

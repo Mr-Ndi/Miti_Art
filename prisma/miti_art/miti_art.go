@@ -75,11 +75,25 @@ const datasources = `[{"name":"db","provider":"postgresql","activeProvider":"pos
 
 const schema = `generator client {
   provider = "prisma-client-go"
+  output   = "./miti_art"
+  package  = "miti_art"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VENDOR
+  CUSTOMER
+}
+
+enum Status {
+  PENDING
+  SHIPPED
+  COMPLETED
 }
 
 model User {
@@ -89,25 +103,24 @@ model User {
   email     String     @unique
   password  String
   salt      String
-  role      String // "admin", "vendor", "customer"
-  Vendor    Vendor[]
+  role      Role       @default(CUSTOMER)
+  Vendor    Vendor?
   Order     Order[]
   Wishlist  Wishlist[]
 }
 
 model Vendor {
-  id            String    @id @default(uuid())
+  userId        String    @id
   user          User      @relation(fields: [userId], references: [id])
-  userId        String
   business_name String
-  tax_pin       String    @unique
+  tax_pin       Int       @unique
   approved      Boolean   @default(false)
   Product       Product[]
 }
 
 model Product {
   id       String     @id @default(uuid())
-  vendor   Vendor     @relation(fields: [vendorId], references: [id])
+  vendor   Vendor     @relation(fields: [vendorId], references: [userId])
   vendorId String
   name     String
   price    Float
@@ -124,7 +137,7 @@ model Order {
   product   Product @relation(fields: [productId], references: [id])
   productId String
   quantity  Int
-  status    String // "pending", "shipped", "completed"
+  status    Status  @default(PENDING)
 }
 
 model Wishlist {
@@ -248,6 +261,25 @@ type PrismaClient struct {
 
 // --- template enums.gotpl ---
 
+type Role string
+
+const (
+	RoleAdmin    Role = "ADMIN"
+	RoleVendor   Role = "VENDOR"
+	RoleCustomer Role = "CUSTOMER"
+)
+
+type RawRole Role
+type Status string
+
+const (
+	StatusPending   Status = "PENDING"
+	StatusShipped   Status = "SHIPPED"
+	StatusCompleted Status = "COMPLETED"
+)
+
+type RawStatus Status
+
 type TransactionIsolationLevel string
 
 const (
@@ -272,7 +304,6 @@ const (
 type VendorScalarFieldEnum string
 
 const (
-	VendorScalarFieldEnumID           VendorScalarFieldEnum = "id"
 	VendorScalarFieldEnumUserID       VendorScalarFieldEnum = "userId"
 	VendorScalarFieldEnumBusinessName VendorScalarFieldEnum = "business_name"
 	VendorScalarFieldEnumTaxPin       VendorScalarFieldEnum = "tax_pin"
@@ -377,11 +408,9 @@ const userFieldWishlist userPrismaFields = "Wishlist"
 
 type vendorPrismaFields = prismaFields
 
-const vendorFieldID vendorPrismaFields = "id"
+const vendorFieldUserID vendorPrismaFields = "userId"
 
 const vendorFieldUser vendorPrismaFields = "user"
-
-const vendorFieldUserID vendorPrismaFields = "userId"
 
 const vendorFieldBusinessName vendorPrismaFields = "business_name"
 
@@ -712,7 +741,7 @@ type InnerUser struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	Salt      string `json:"salt"`
-	Role      string `json:"role"`
+	Role      Role   `json:"role"`
 }
 
 // RawUserModel is a struct for User when used in raw queries
@@ -723,21 +752,21 @@ type RawUserModel struct {
 	Email     RawString `json:"email"`
 	Password  RawString `json:"password"`
 	Salt      RawString `json:"salt"`
-	Role      RawString `json:"role"`
+	Role      RawRole   `json:"role"`
 }
 
 // RelationsUser holds the relation data separately
 type RelationsUser struct {
-	Vendor   []VendorModel   `json:"Vendor,omitempty"`
+	Vendor   *VendorModel    `json:"Vendor,omitempty"`
 	Order    []OrderModel    `json:"Order,omitempty"`
 	Wishlist []WishlistModel `json:"Wishlist,omitempty"`
 }
 
-func (r UserModel) Vendor() (value []VendorModel) {
+func (r UserModel) Vendor() (value *VendorModel, ok bool) {
 	if r.RelationsUser.Vendor == nil {
-		panic("attempted to access vendor but did not fetch it using the .With() syntax")
+		return value, false
 	}
-	return r.RelationsUser.Vendor
+	return r.RelationsUser.Vendor, true
 }
 
 func (r UserModel) Order() (value []OrderModel) {
@@ -762,19 +791,17 @@ type VendorModel struct {
 
 // InnerVendor holds the actual data
 type InnerVendor struct {
-	ID           string `json:"id"`
 	UserID       string `json:"userId"`
 	BusinessName string `json:"business_name"`
-	TaxPin       string `json:"tax_pin"`
+	TaxPin       int    `json:"tax_pin"`
 	Approved     bool   `json:"approved"`
 }
 
 // RawVendorModel is a struct for Vendor when used in raw queries
 type RawVendorModel struct {
-	ID           RawString  `json:"id"`
 	UserID       RawString  `json:"userId"`
 	BusinessName RawString  `json:"business_name"`
-	TaxPin       RawString  `json:"tax_pin"`
+	TaxPin       RawInt     `json:"tax_pin"`
 	Approved     RawBoolean `json:"approved"`
 }
 
@@ -864,7 +891,7 @@ type InnerOrder struct {
 	UserID    string `json:"userId"`
 	ProductID string `json:"productId"`
 	Quantity  int    `json:"quantity"`
-	Status    string `json:"status"`
+	Status    Status `json:"status"`
 }
 
 // RawOrderModel is a struct for Order when used in raw queries
@@ -873,7 +900,7 @@ type RawOrderModel struct {
 	UserID    RawString `json:"userId"`
 	ProductID RawString `json:"productId"`
 	Quantity  RawInt    `json:"quantity"`
-	Status    RawString `json:"status"`
+	Status    RawStatus `json:"status"`
 }
 
 // RelationsOrder holds the relation data separately
@@ -978,7 +1005,7 @@ type userQuery struct {
 	// Role
 	//
 	// @required
-	Role userQueryRoleString
+	Role userQueryRoleRole
 
 	Vendor userQueryVendorRelations
 
@@ -3121,12 +3148,12 @@ func (r userQuerySaltString) Field() userPrismaFields {
 }
 
 // base struct
-type userQueryRoleString struct{}
+type userQueryRoleRole struct{}
 
 // Set the required value of Role
-func (r userQueryRoleString) Set(value string) userWithPrismaRoleSetParam {
+func (r userQueryRoleRole) Set(value Role) userSetParam {
 
-	return userWithPrismaRoleSetParam{
+	return userSetParam{
 		data: builder.Field{
 			Name:  "role",
 			Value: value,
@@ -3136,15 +3163,15 @@ func (r userQueryRoleString) Set(value string) userWithPrismaRoleSetParam {
 }
 
 // Set the optional value of Role dynamically
-func (r userQueryRoleString) SetIfPresent(value *String) userWithPrismaRoleSetParam {
+func (r userQueryRoleRole) SetIfPresent(value *Role) userSetParam {
 	if value == nil {
-		return userWithPrismaRoleSetParam{}
+		return userSetParam{}
 	}
 
 	return r.Set(*value)
 }
 
-func (r userQueryRoleString) Equals(value string) userWithPrismaRoleEqualsParam {
+func (r userQueryRoleRole) Equals(value Role) userWithPrismaRoleEqualsParam {
 
 	return userWithPrismaRoleEqualsParam{
 		data: builder.Field{
@@ -3159,14 +3186,14 @@ func (r userQueryRoleString) Equals(value string) userWithPrismaRoleEqualsParam 
 	}
 }
 
-func (r userQueryRoleString) EqualsIfPresent(value *string) userWithPrismaRoleEqualsParam {
+func (r userQueryRoleRole) EqualsIfPresent(value *Role) userWithPrismaRoleEqualsParam {
 	if value == nil {
 		return userWithPrismaRoleEqualsParam{}
 	}
 	return r.Equals(*value)
 }
 
-func (r userQueryRoleString) Order(direction SortOrder) userDefaultParam {
+func (r userQueryRoleRole) Order(direction SortOrder) userDefaultParam {
 	return userDefaultParam{
 		data: builder.Field{
 			Name:  "role",
@@ -3175,7 +3202,7 @@ func (r userQueryRoleString) Order(direction SortOrder) userDefaultParam {
 	}
 }
 
-func (r userQueryRoleString) Cursor(cursor string) userCursorParam {
+func (r userQueryRoleRole) Cursor(cursor Role) userCursorParam {
 	return userCursorParam{
 		data: builder.Field{
 			Name:  "role",
@@ -3184,7 +3211,7 @@ func (r userQueryRoleString) Cursor(cursor string) userCursorParam {
 	}
 }
 
-func (r userQueryRoleString) In(value []string) userDefaultParam {
+func (r userQueryRoleRole) In(value []Role) userDefaultParam {
 	return userDefaultParam{
 		data: builder.Field{
 			Name: "role",
@@ -3198,14 +3225,14 @@ func (r userQueryRoleString) In(value []string) userDefaultParam {
 	}
 }
 
-func (r userQueryRoleString) InIfPresent(value []string) userDefaultParam {
+func (r userQueryRoleRole) InIfPresent(value []Role) userDefaultParam {
 	if value == nil {
 		return userDefaultParam{}
 	}
 	return r.In(value)
 }
 
-func (r userQueryRoleString) NotIn(value []string) userDefaultParam {
+func (r userQueryRoleRole) NotIn(value []Role) userDefaultParam {
 	return userDefaultParam{
 		data: builder.Field{
 			Name: "role",
@@ -3219,182 +3246,14 @@ func (r userQueryRoleString) NotIn(value []string) userDefaultParam {
 	}
 }
 
-func (r userQueryRoleString) NotInIfPresent(value []string) userDefaultParam {
+func (r userQueryRoleRole) NotInIfPresent(value []Role) userDefaultParam {
 	if value == nil {
 		return userDefaultParam{}
 	}
 	return r.NotIn(value)
 }
 
-func (r userQueryRoleString) Lt(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "lt",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) LtIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.Lt(*value)
-}
-
-func (r userQueryRoleString) Lte(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "lte",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) LteIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.Lte(*value)
-}
-
-func (r userQueryRoleString) Gt(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "gt",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) GtIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.Gt(*value)
-}
-
-func (r userQueryRoleString) Gte(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "gte",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) GteIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.Gte(*value)
-}
-
-func (r userQueryRoleString) Contains(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "contains",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) ContainsIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.Contains(*value)
-}
-
-func (r userQueryRoleString) StartsWith(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "startsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) StartsWithIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.StartsWith(*value)
-}
-
-func (r userQueryRoleString) EndsWith(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "endsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) EndsWithIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.EndsWith(*value)
-}
-
-func (r userQueryRoleString) Mode(value QueryMode) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "mode",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r userQueryRoleString) ModeIfPresent(value *QueryMode) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.Mode(*value)
-}
-
-func (r userQueryRoleString) Not(value string) userDefaultParam {
+func (r userQueryRoleRole) Not(value Role) userDefaultParam {
 	return userDefaultParam{
 		data: builder.Field{
 			Name: "role",
@@ -3408,62 +3267,14 @@ func (r userQueryRoleString) Not(value string) userDefaultParam {
 	}
 }
 
-func (r userQueryRoleString) NotIfPresent(value *string) userDefaultParam {
+func (r userQueryRoleRole) NotIfPresent(value *Role) userDefaultParam {
 	if value == nil {
 		return userDefaultParam{}
 	}
 	return r.Not(*value)
 }
 
-// deprecated: Use StartsWith instead.
-
-func (r userQueryRoleString) HasPrefix(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "starts_with",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-// deprecated: Use StartsWithIfPresent instead.
-func (r userQueryRoleString) HasPrefixIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.HasPrefix(*value)
-}
-
-// deprecated: Use EndsWith instead.
-
-func (r userQueryRoleString) HasSuffix(value string) userDefaultParam {
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "role",
-			Fields: []builder.Field{
-				{
-					Name:  "ends_with",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-// deprecated: Use EndsWithIfPresent instead.
-func (r userQueryRoleString) HasSuffixIfPresent(value *string) userDefaultParam {
-	if value == nil {
-		return userDefaultParam{}
-	}
-	return r.HasSuffix(*value)
-}
-
-func (r userQueryRoleString) Field() userPrismaFields {
+func (r userQueryRoleRole) Field() userPrismaFields {
 	return userFieldRole
 }
 
@@ -3475,8 +3286,8 @@ type userQueryVendorRelations struct{}
 // User -> Vendor
 //
 // @relation
-// @required
-func (userQueryVendorRelations) Some(
+// @optional
+func (userQueryVendorRelations) Where(
 	params ...VendorWhereParam,
 ) userDefaultParam {
 	var fields []builder.Field
@@ -3490,7 +3301,7 @@ func (userQueryVendorRelations) Some(
 			Name: "Vendor",
 			Fields: []builder.Field{
 				{
-					Name:   "some",
+					Name:   "is",
 					Fields: fields,
 				},
 			},
@@ -3498,100 +3309,27 @@ func (userQueryVendorRelations) Some(
 	}
 }
 
-// User -> Vendor
-//
-// @relation
-// @required
-func (userQueryVendorRelations) Every(
-	params ...VendorWhereParam,
-) userDefaultParam {
-	var fields []builder.Field
-
-	for _, q := range params {
-		fields = append(fields, q.field())
-	}
-
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "Vendor",
-			Fields: []builder.Field{
-				{
-					Name:   "every",
-					Fields: fields,
-				},
-			},
-		},
-	}
-}
-
-// User -> Vendor
-//
-// @relation
-// @required
-func (userQueryVendorRelations) None(
-	params ...VendorWhereParam,
-) userDefaultParam {
-	var fields []builder.Field
-
-	for _, q := range params {
-		fields = append(fields, q.field())
-	}
-
-	return userDefaultParam{
-		data: builder.Field{
-			Name: "Vendor",
-			Fields: []builder.Field{
-				{
-					Name:   "none",
-					Fields: fields,
-				},
-			},
-		},
-	}
-}
-
-func (userQueryVendorRelations) Fetch(
-
-	params ...VendorWhereParam,
-
-) userToVendorFindMany {
-	var v userToVendorFindMany
+func (userQueryVendorRelations) Fetch() userToVendorFindUnique {
+	var v userToVendorFindUnique
 
 	v.query.Operation = "query"
 	v.query.Method = "Vendor"
 	v.query.Outputs = vendorOutput
 
-	var where []builder.Field
-	for _, q := range params {
-		if query := q.getQuery(); query.Operation != "" {
-			v.query.Outputs = append(v.query.Outputs, builder.Output{
-				Name:    query.Method,
-				Inputs:  query.Inputs,
-				Outputs: query.Outputs,
-			})
-		} else {
-			where = append(where, q.field())
-		}
-	}
-
-	if len(where) > 0 {
-		v.query.Inputs = append(v.query.Inputs, builder.Input{
-			Name:   "where",
-			Fields: where,
-		})
-	}
-
 	return v
 }
 
 func (r userQueryVendorRelations) Link(
-	params ...VendorWhereParam,
+	params VendorWhereParam,
 ) userSetParam {
 	var fields []builder.Field
 
-	for _, q := range params {
-		fields = append(fields, q.field())
+	f := params.field()
+	if f.Fields == nil && f.Value == nil {
+		return userSetParam{}
 	}
+
+	fields = append(fields, f)
 
 	return userSetParam{
 		data: builder.Field{
@@ -3600,33 +3338,22 @@ func (r userQueryVendorRelations) Link(
 				{
 					Name:   "connect",
 					Fields: builder.TransformEquals(fields),
-
-					List:     true,
-					WrapList: true,
 				},
 			},
 		},
 	}
 }
 
-func (r userQueryVendorRelations) Unlink(
-	params ...VendorWhereParam,
-) userSetParam {
+func (r userQueryVendorRelations) Unlink() userSetParam {
 	var v userSetParam
 
-	var fields []builder.Field
-	for _, q := range params {
-		fields = append(fields, q.field())
-	}
 	v = userSetParam{
 		data: builder.Field{
 			Name: "Vendor",
 			Fields: []builder.Field{
 				{
-					Name:     "disconnect",
-					List:     true,
-					WrapList: true,
-					Fields:   builder.TransformEquals(fields),
+					Name:  "disconnect",
+					Value: true,
 				},
 			},
 		},
@@ -3989,17 +3716,12 @@ var Vendor = vendorQuery{}
 // vendorQuery exposes query functions for the vendor model
 type vendorQuery struct {
 
-	// ID
-	//
-	// @required
-	ID vendorQueryIDString
-
-	User vendorQueryUserRelations
-
 	// UserID
 	//
 	// @required
 	UserID vendorQueryUserIDString
+
+	User vendorQueryUserRelations
 
 	// BusinessName
 	//
@@ -4010,7 +3732,7 @@ type vendorQuery struct {
 	//
 	// @required
 	// @unique
-	TaxPin vendorQueryTaxPinString
+	TaxPin vendorQueryTaxPinInt
 
 	// Approved
 	//
@@ -4072,22 +3794,22 @@ func (vendorQuery) And(params ...VendorWhereParam) vendorDefaultParam {
 }
 
 // base struct
-type vendorQueryIDString struct{}
+type vendorQueryUserIDString struct{}
 
-// Set the required value of ID
-func (r vendorQueryIDString) Set(value string) vendorSetParam {
+// Set the required value of UserID
+func (r vendorQueryUserIDString) Set(value string) vendorSetParam {
 
 	return vendorSetParam{
 		data: builder.Field{
-			Name:  "id",
+			Name:  "userId",
 			Value: value,
 		},
 	}
 
 }
 
-// Set the optional value of ID dynamically
-func (r vendorQueryIDString) SetIfPresent(value *String) vendorSetParam {
+// Set the optional value of UserID dynamically
+func (r vendorQueryUserIDString) SetIfPresent(value *String) vendorSetParam {
 	if value == nil {
 		return vendorSetParam{}
 	}
@@ -4095,11 +3817,11 @@ func (r vendorQueryIDString) SetIfPresent(value *String) vendorSetParam {
 	return r.Set(*value)
 }
 
-func (r vendorQueryIDString) Equals(value string) vendorWithPrismaIDEqualsUniqueParam {
+func (r vendorQueryUserIDString) Equals(value string) vendorWithPrismaUserIDEqualsUniqueParam {
 
-	return vendorWithPrismaIDEqualsUniqueParam{
+	return vendorWithPrismaUserIDEqualsUniqueParam{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "equals",
@@ -4110,35 +3832,35 @@ func (r vendorQueryIDString) Equals(value string) vendorWithPrismaIDEqualsUnique
 	}
 }
 
-func (r vendorQueryIDString) EqualsIfPresent(value *string) vendorWithPrismaIDEqualsUniqueParam {
+func (r vendorQueryUserIDString) EqualsIfPresent(value *string) vendorWithPrismaUserIDEqualsUniqueParam {
 	if value == nil {
-		return vendorWithPrismaIDEqualsUniqueParam{}
+		return vendorWithPrismaUserIDEqualsUniqueParam{}
 	}
 	return r.Equals(*value)
 }
 
-func (r vendorQueryIDString) Order(direction SortOrder) vendorDefaultParam {
+func (r vendorQueryUserIDString) Order(direction SortOrder) vendorDefaultParam {
 	return vendorDefaultParam{
 		data: builder.Field{
-			Name:  "id",
+			Name:  "userId",
 			Value: direction,
 		},
 	}
 }
 
-func (r vendorQueryIDString) Cursor(cursor string) vendorCursorParam {
+func (r vendorQueryUserIDString) Cursor(cursor string) vendorCursorParam {
 	return vendorCursorParam{
 		data: builder.Field{
-			Name:  "id",
+			Name:  "userId",
 			Value: cursor,
 		},
 	}
 }
 
-func (r vendorQueryIDString) In(value []string) vendorParamUnique {
+func (r vendorQueryUserIDString) In(value []string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "in",
@@ -4149,17 +3871,17 @@ func (r vendorQueryIDString) In(value []string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) InIfPresent(value []string) vendorParamUnique {
+func (r vendorQueryUserIDString) InIfPresent(value []string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.In(value)
 }
 
-func (r vendorQueryIDString) NotIn(value []string) vendorParamUnique {
+func (r vendorQueryUserIDString) NotIn(value []string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "notIn",
@@ -4170,17 +3892,17 @@ func (r vendorQueryIDString) NotIn(value []string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) NotInIfPresent(value []string) vendorParamUnique {
+func (r vendorQueryUserIDString) NotInIfPresent(value []string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.NotIn(value)
 }
 
-func (r vendorQueryIDString) Lt(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) Lt(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "lt",
@@ -4191,17 +3913,17 @@ func (r vendorQueryIDString) Lt(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) LtIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) LtIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Lt(*value)
 }
 
-func (r vendorQueryIDString) Lte(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) Lte(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "lte",
@@ -4212,17 +3934,17 @@ func (r vendorQueryIDString) Lte(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) LteIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) LteIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Lte(*value)
 }
 
-func (r vendorQueryIDString) Gt(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) Gt(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "gt",
@@ -4233,17 +3955,17 @@ func (r vendorQueryIDString) Gt(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) GtIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) GtIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Gt(*value)
 }
 
-func (r vendorQueryIDString) Gte(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) Gte(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "gte",
@@ -4254,17 +3976,17 @@ func (r vendorQueryIDString) Gte(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) GteIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) GteIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Gte(*value)
 }
 
-func (r vendorQueryIDString) Contains(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) Contains(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "contains",
@@ -4275,17 +3997,17 @@ func (r vendorQueryIDString) Contains(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) ContainsIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) ContainsIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Contains(*value)
 }
 
-func (r vendorQueryIDString) StartsWith(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) StartsWith(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "startsWith",
@@ -4296,17 +4018,17 @@ func (r vendorQueryIDString) StartsWith(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) StartsWithIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) StartsWithIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.StartsWith(*value)
 }
 
-func (r vendorQueryIDString) EndsWith(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) EndsWith(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "endsWith",
@@ -4317,17 +4039,17 @@ func (r vendorQueryIDString) EndsWith(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) EndsWithIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) EndsWithIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.EndsWith(*value)
 }
 
-func (r vendorQueryIDString) Mode(value QueryMode) vendorParamUnique {
+func (r vendorQueryUserIDString) Mode(value QueryMode) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "mode",
@@ -4338,17 +4060,17 @@ func (r vendorQueryIDString) Mode(value QueryMode) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) ModeIfPresent(value *QueryMode) vendorParamUnique {
+func (r vendorQueryUserIDString) ModeIfPresent(value *QueryMode) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Mode(*value)
 }
 
-func (r vendorQueryIDString) Not(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) Not(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "not",
@@ -4359,7 +4081,7 @@ func (r vendorQueryIDString) Not(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryIDString) NotIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) NotIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
@@ -4368,10 +4090,10 @@ func (r vendorQueryIDString) NotIfPresent(value *string) vendorParamUnique {
 
 // deprecated: Use StartsWith instead.
 
-func (r vendorQueryIDString) HasPrefix(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) HasPrefix(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "starts_with",
@@ -4383,7 +4105,7 @@ func (r vendorQueryIDString) HasPrefix(value string) vendorParamUnique {
 }
 
 // deprecated: Use StartsWithIfPresent instead.
-func (r vendorQueryIDString) HasPrefixIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) HasPrefixIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
@@ -4392,10 +4114,10 @@ func (r vendorQueryIDString) HasPrefixIfPresent(value *string) vendorParamUnique
 
 // deprecated: Use EndsWith instead.
 
-func (r vendorQueryIDString) HasSuffix(value string) vendorParamUnique {
+func (r vendorQueryUserIDString) HasSuffix(value string) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
-			Name: "id",
+			Name: "userId",
 			Fields: []builder.Field{
 				{
 					Name:  "ends_with",
@@ -4407,15 +4129,15 @@ func (r vendorQueryIDString) HasSuffix(value string) vendorParamUnique {
 }
 
 // deprecated: Use EndsWithIfPresent instead.
-func (r vendorQueryIDString) HasSuffixIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryUserIDString) HasSuffixIfPresent(value *string) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.HasSuffix(*value)
 }
 
-func (r vendorQueryIDString) Field() vendorPrismaFields {
-	return vendorFieldID
+func (r vendorQueryUserIDString) Field() vendorPrismaFields {
+	return vendorFieldUserID
 }
 
 // base struct
@@ -4504,353 +4226,6 @@ func (r vendorQueryUserRelations) Unlink() vendorWithPrismaUserSetParam {
 
 func (r vendorQueryUserUser) Field() vendorPrismaFields {
 	return vendorFieldUser
-}
-
-// base struct
-type vendorQueryUserIDString struct{}
-
-// Set the required value of UserID
-func (r vendorQueryUserIDString) Set(value string) vendorSetParam {
-
-	return vendorSetParam{
-		data: builder.Field{
-			Name:  "userId",
-			Value: value,
-		},
-	}
-
-}
-
-// Set the optional value of UserID dynamically
-func (r vendorQueryUserIDString) SetIfPresent(value *String) vendorSetParam {
-	if value == nil {
-		return vendorSetParam{}
-	}
-
-	return r.Set(*value)
-}
-
-func (r vendorQueryUserIDString) Equals(value string) vendorWithPrismaUserIDEqualsParam {
-
-	return vendorWithPrismaUserIDEqualsParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "equals",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) EqualsIfPresent(value *string) vendorWithPrismaUserIDEqualsParam {
-	if value == nil {
-		return vendorWithPrismaUserIDEqualsParam{}
-	}
-	return r.Equals(*value)
-}
-
-func (r vendorQueryUserIDString) Order(direction SortOrder) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name:  "userId",
-			Value: direction,
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) Cursor(cursor string) vendorCursorParam {
-	return vendorCursorParam{
-		data: builder.Field{
-			Name:  "userId",
-			Value: cursor,
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) In(value []string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "in",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) InIfPresent(value []string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.In(value)
-}
-
-func (r vendorQueryUserIDString) NotIn(value []string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "notIn",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) NotInIfPresent(value []string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.NotIn(value)
-}
-
-func (r vendorQueryUserIDString) Lt(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "lt",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) LtIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Lt(*value)
-}
-
-func (r vendorQueryUserIDString) Lte(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "lte",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) LteIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Lte(*value)
-}
-
-func (r vendorQueryUserIDString) Gt(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "gt",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) GtIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Gt(*value)
-}
-
-func (r vendorQueryUserIDString) Gte(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "gte",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) GteIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Gte(*value)
-}
-
-func (r vendorQueryUserIDString) Contains(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "contains",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) ContainsIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Contains(*value)
-}
-
-func (r vendorQueryUserIDString) StartsWith(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "startsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) StartsWithIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.StartsWith(*value)
-}
-
-func (r vendorQueryUserIDString) EndsWith(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "endsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) EndsWithIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.EndsWith(*value)
-}
-
-func (r vendorQueryUserIDString) Mode(value QueryMode) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "mode",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) ModeIfPresent(value *QueryMode) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Mode(*value)
-}
-
-func (r vendorQueryUserIDString) Not(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "not",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryUserIDString) NotIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.Not(*value)
-}
-
-// deprecated: Use StartsWith instead.
-
-func (r vendorQueryUserIDString) HasPrefix(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "starts_with",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-// deprecated: Use StartsWithIfPresent instead.
-func (r vendorQueryUserIDString) HasPrefixIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.HasPrefix(*value)
-}
-
-// deprecated: Use EndsWith instead.
-
-func (r vendorQueryUserIDString) HasSuffix(value string) vendorDefaultParam {
-	return vendorDefaultParam{
-		data: builder.Field{
-			Name: "userId",
-			Fields: []builder.Field{
-				{
-					Name:  "ends_with",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-// deprecated: Use EndsWithIfPresent instead.
-func (r vendorQueryUserIDString) HasSuffixIfPresent(value *string) vendorDefaultParam {
-	if value == nil {
-		return vendorDefaultParam{}
-	}
-	return r.HasSuffix(*value)
-}
-
-func (r vendorQueryUserIDString) Field() vendorPrismaFields {
-	return vendorFieldUserID
 }
 
 // base struct
@@ -5201,10 +4576,10 @@ func (r vendorQueryBusinessNameString) Field() vendorPrismaFields {
 }
 
 // base struct
-type vendorQueryTaxPinString struct{}
+type vendorQueryTaxPinInt struct{}
 
 // Set the required value of TaxPin
-func (r vendorQueryTaxPinString) Set(value string) vendorWithPrismaTaxPinSetParam {
+func (r vendorQueryTaxPinInt) Set(value int) vendorWithPrismaTaxPinSetParam {
 
 	return vendorWithPrismaTaxPinSetParam{
 		data: builder.Field{
@@ -5216,7 +4591,7 @@ func (r vendorQueryTaxPinString) Set(value string) vendorWithPrismaTaxPinSetPara
 }
 
 // Set the optional value of TaxPin dynamically
-func (r vendorQueryTaxPinString) SetIfPresent(value *String) vendorWithPrismaTaxPinSetParam {
+func (r vendorQueryTaxPinInt) SetIfPresent(value *Int) vendorWithPrismaTaxPinSetParam {
 	if value == nil {
 		return vendorWithPrismaTaxPinSetParam{}
 	}
@@ -5224,7 +4599,95 @@ func (r vendorQueryTaxPinString) SetIfPresent(value *String) vendorWithPrismaTax
 	return r.Set(*value)
 }
 
-func (r vendorQueryTaxPinString) Equals(value string) vendorWithPrismaTaxPinEqualsUniqueParam {
+// Increment the required value of TaxPin
+func (r vendorQueryTaxPinInt) Increment(value int) vendorWithPrismaTaxPinSetParam {
+	return vendorWithPrismaTaxPinSetParam{
+		data: builder.Field{
+			Name: "tax_pin",
+			Fields: []builder.Field{
+				builder.Field{
+					Name:  "increment",
+					Value: value,
+				},
+			},
+		},
+	}
+}
+
+func (r vendorQueryTaxPinInt) IncrementIfPresent(value *int) vendorWithPrismaTaxPinSetParam {
+	if value == nil {
+		return vendorWithPrismaTaxPinSetParam{}
+	}
+	return r.Increment(*value)
+}
+
+// Decrement the required value of TaxPin
+func (r vendorQueryTaxPinInt) Decrement(value int) vendorWithPrismaTaxPinSetParam {
+	return vendorWithPrismaTaxPinSetParam{
+		data: builder.Field{
+			Name: "tax_pin",
+			Fields: []builder.Field{
+				builder.Field{
+					Name:  "decrement",
+					Value: value,
+				},
+			},
+		},
+	}
+}
+
+func (r vendorQueryTaxPinInt) DecrementIfPresent(value *int) vendorWithPrismaTaxPinSetParam {
+	if value == nil {
+		return vendorWithPrismaTaxPinSetParam{}
+	}
+	return r.Decrement(*value)
+}
+
+// Multiply the required value of TaxPin
+func (r vendorQueryTaxPinInt) Multiply(value int) vendorWithPrismaTaxPinSetParam {
+	return vendorWithPrismaTaxPinSetParam{
+		data: builder.Field{
+			Name: "tax_pin",
+			Fields: []builder.Field{
+				builder.Field{
+					Name:  "multiply",
+					Value: value,
+				},
+			},
+		},
+	}
+}
+
+func (r vendorQueryTaxPinInt) MultiplyIfPresent(value *int) vendorWithPrismaTaxPinSetParam {
+	if value == nil {
+		return vendorWithPrismaTaxPinSetParam{}
+	}
+	return r.Multiply(*value)
+}
+
+// Divide the required value of TaxPin
+func (r vendorQueryTaxPinInt) Divide(value int) vendorWithPrismaTaxPinSetParam {
+	return vendorWithPrismaTaxPinSetParam{
+		data: builder.Field{
+			Name: "tax_pin",
+			Fields: []builder.Field{
+				builder.Field{
+					Name:  "divide",
+					Value: value,
+				},
+			},
+		},
+	}
+}
+
+func (r vendorQueryTaxPinInt) DivideIfPresent(value *int) vendorWithPrismaTaxPinSetParam {
+	if value == nil {
+		return vendorWithPrismaTaxPinSetParam{}
+	}
+	return r.Divide(*value)
+}
+
+func (r vendorQueryTaxPinInt) Equals(value int) vendorWithPrismaTaxPinEqualsUniqueParam {
 
 	return vendorWithPrismaTaxPinEqualsUniqueParam{
 		data: builder.Field{
@@ -5239,14 +4702,14 @@ func (r vendorQueryTaxPinString) Equals(value string) vendorWithPrismaTaxPinEqua
 	}
 }
 
-func (r vendorQueryTaxPinString) EqualsIfPresent(value *string) vendorWithPrismaTaxPinEqualsUniqueParam {
+func (r vendorQueryTaxPinInt) EqualsIfPresent(value *int) vendorWithPrismaTaxPinEqualsUniqueParam {
 	if value == nil {
 		return vendorWithPrismaTaxPinEqualsUniqueParam{}
 	}
 	return r.Equals(*value)
 }
 
-func (r vendorQueryTaxPinString) Order(direction SortOrder) vendorDefaultParam {
+func (r vendorQueryTaxPinInt) Order(direction SortOrder) vendorDefaultParam {
 	return vendorDefaultParam{
 		data: builder.Field{
 			Name:  "tax_pin",
@@ -5255,7 +4718,7 @@ func (r vendorQueryTaxPinString) Order(direction SortOrder) vendorDefaultParam {
 	}
 }
 
-func (r vendorQueryTaxPinString) Cursor(cursor string) vendorCursorParam {
+func (r vendorQueryTaxPinInt) Cursor(cursor int) vendorCursorParam {
 	return vendorCursorParam{
 		data: builder.Field{
 			Name:  "tax_pin",
@@ -5264,7 +4727,7 @@ func (r vendorQueryTaxPinString) Cursor(cursor string) vendorCursorParam {
 	}
 }
 
-func (r vendorQueryTaxPinString) In(value []string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) In(value []int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5278,14 +4741,14 @@ func (r vendorQueryTaxPinString) In(value []string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) InIfPresent(value []string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) InIfPresent(value []int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.In(value)
 }
 
-func (r vendorQueryTaxPinString) NotIn(value []string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) NotIn(value []int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5299,14 +4762,14 @@ func (r vendorQueryTaxPinString) NotIn(value []string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) NotInIfPresent(value []string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) NotInIfPresent(value []int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.NotIn(value)
 }
 
-func (r vendorQueryTaxPinString) Lt(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) Lt(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5320,14 +4783,14 @@ func (r vendorQueryTaxPinString) Lt(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) LtIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) LtIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Lt(*value)
 }
 
-func (r vendorQueryTaxPinString) Lte(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) Lte(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5341,14 +4804,14 @@ func (r vendorQueryTaxPinString) Lte(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) LteIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) LteIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Lte(*value)
 }
 
-func (r vendorQueryTaxPinString) Gt(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) Gt(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5362,14 +4825,14 @@ func (r vendorQueryTaxPinString) Gt(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) GtIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) GtIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Gt(*value)
 }
 
-func (r vendorQueryTaxPinString) Gte(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) Gte(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5383,98 +4846,14 @@ func (r vendorQueryTaxPinString) Gte(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) GteIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) GteIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Gte(*value)
 }
 
-func (r vendorQueryTaxPinString) Contains(value string) vendorParamUnique {
-	return vendorParamUnique{
-		data: builder.Field{
-			Name: "tax_pin",
-			Fields: []builder.Field{
-				{
-					Name:  "contains",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryTaxPinString) ContainsIfPresent(value *string) vendorParamUnique {
-	if value == nil {
-		return vendorParamUnique{}
-	}
-	return r.Contains(*value)
-}
-
-func (r vendorQueryTaxPinString) StartsWith(value string) vendorParamUnique {
-	return vendorParamUnique{
-		data: builder.Field{
-			Name: "tax_pin",
-			Fields: []builder.Field{
-				{
-					Name:  "startsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryTaxPinString) StartsWithIfPresent(value *string) vendorParamUnique {
-	if value == nil {
-		return vendorParamUnique{}
-	}
-	return r.StartsWith(*value)
-}
-
-func (r vendorQueryTaxPinString) EndsWith(value string) vendorParamUnique {
-	return vendorParamUnique{
-		data: builder.Field{
-			Name: "tax_pin",
-			Fields: []builder.Field{
-				{
-					Name:  "endsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryTaxPinString) EndsWithIfPresent(value *string) vendorParamUnique {
-	if value == nil {
-		return vendorParamUnique{}
-	}
-	return r.EndsWith(*value)
-}
-
-func (r vendorQueryTaxPinString) Mode(value QueryMode) vendorParamUnique {
-	return vendorParamUnique{
-		data: builder.Field{
-			Name: "tax_pin",
-			Fields: []builder.Field{
-				{
-					Name:  "mode",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r vendorQueryTaxPinString) ModeIfPresent(value *QueryMode) vendorParamUnique {
-	if value == nil {
-		return vendorParamUnique{}
-	}
-	return r.Mode(*value)
-}
-
-func (r vendorQueryTaxPinString) Not(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) Not(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
@@ -5488,22 +4867,22 @@ func (r vendorQueryTaxPinString) Not(value string) vendorParamUnique {
 	}
 }
 
-func (r vendorQueryTaxPinString) NotIfPresent(value *string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) NotIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
 	return r.Not(*value)
 }
 
-// deprecated: Use StartsWith instead.
+// deprecated: Use Lt instead.
 
-func (r vendorQueryTaxPinString) HasPrefix(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) LT(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
 			Fields: []builder.Field{
 				{
-					Name:  "starts_with",
+					Name:  "lt",
 					Value: value,
 				},
 			},
@@ -5511,23 +4890,23 @@ func (r vendorQueryTaxPinString) HasPrefix(value string) vendorParamUnique {
 	}
 }
 
-// deprecated: Use StartsWithIfPresent instead.
-func (r vendorQueryTaxPinString) HasPrefixIfPresent(value *string) vendorParamUnique {
+// deprecated: Use LtIfPresent instead.
+func (r vendorQueryTaxPinInt) LTIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
-	return r.HasPrefix(*value)
+	return r.LT(*value)
 }
 
-// deprecated: Use EndsWith instead.
+// deprecated: Use Lte instead.
 
-func (r vendorQueryTaxPinString) HasSuffix(value string) vendorParamUnique {
+func (r vendorQueryTaxPinInt) LTE(value int) vendorParamUnique {
 	return vendorParamUnique{
 		data: builder.Field{
 			Name: "tax_pin",
 			Fields: []builder.Field{
 				{
-					Name:  "ends_with",
+					Name:  "lte",
 					Value: value,
 				},
 			},
@@ -5535,15 +4914,63 @@ func (r vendorQueryTaxPinString) HasSuffix(value string) vendorParamUnique {
 	}
 }
 
-// deprecated: Use EndsWithIfPresent instead.
-func (r vendorQueryTaxPinString) HasSuffixIfPresent(value *string) vendorParamUnique {
+// deprecated: Use LteIfPresent instead.
+func (r vendorQueryTaxPinInt) LTEIfPresent(value *int) vendorParamUnique {
 	if value == nil {
 		return vendorParamUnique{}
 	}
-	return r.HasSuffix(*value)
+	return r.LTE(*value)
 }
 
-func (r vendorQueryTaxPinString) Field() vendorPrismaFields {
+// deprecated: Use Gt instead.
+
+func (r vendorQueryTaxPinInt) GT(value int) vendorParamUnique {
+	return vendorParamUnique{
+		data: builder.Field{
+			Name: "tax_pin",
+			Fields: []builder.Field{
+				{
+					Name:  "gt",
+					Value: value,
+				},
+			},
+		},
+	}
+}
+
+// deprecated: Use GtIfPresent instead.
+func (r vendorQueryTaxPinInt) GTIfPresent(value *int) vendorParamUnique {
+	if value == nil {
+		return vendorParamUnique{}
+	}
+	return r.GT(*value)
+}
+
+// deprecated: Use Gte instead.
+
+func (r vendorQueryTaxPinInt) GTE(value int) vendorParamUnique {
+	return vendorParamUnique{
+		data: builder.Field{
+			Name: "tax_pin",
+			Fields: []builder.Field{
+				{
+					Name:  "gte",
+					Value: value,
+				},
+			},
+		},
+	}
+}
+
+// deprecated: Use GteIfPresent instead.
+func (r vendorQueryTaxPinInt) GTEIfPresent(value *int) vendorParamUnique {
+	if value == nil {
+		return vendorParamUnique{}
+	}
+	return r.GTE(*value)
+}
+
+func (r vendorQueryTaxPinInt) Field() vendorPrismaFields {
 	return vendorFieldTaxPin
 }
 
@@ -8480,7 +7907,7 @@ type orderQuery struct {
 	// Status
 	//
 	// @required
-	Status orderQueryStatusString
+	Status orderQueryStatusStatus
 }
 
 func (orderQuery) Not(params ...OrderWhereParam) orderDefaultParam {
@@ -10151,12 +9578,12 @@ func (r orderQueryQuantityInt) Field() orderPrismaFields {
 }
 
 // base struct
-type orderQueryStatusString struct{}
+type orderQueryStatusStatus struct{}
 
 // Set the required value of Status
-func (r orderQueryStatusString) Set(value string) orderWithPrismaStatusSetParam {
+func (r orderQueryStatusStatus) Set(value Status) orderSetParam {
 
-	return orderWithPrismaStatusSetParam{
+	return orderSetParam{
 		data: builder.Field{
 			Name:  "status",
 			Value: value,
@@ -10166,15 +9593,15 @@ func (r orderQueryStatusString) Set(value string) orderWithPrismaStatusSetParam 
 }
 
 // Set the optional value of Status dynamically
-func (r orderQueryStatusString) SetIfPresent(value *String) orderWithPrismaStatusSetParam {
+func (r orderQueryStatusStatus) SetIfPresent(value *Status) orderSetParam {
 	if value == nil {
-		return orderWithPrismaStatusSetParam{}
+		return orderSetParam{}
 	}
 
 	return r.Set(*value)
 }
 
-func (r orderQueryStatusString) Equals(value string) orderWithPrismaStatusEqualsParam {
+func (r orderQueryStatusStatus) Equals(value Status) orderWithPrismaStatusEqualsParam {
 
 	return orderWithPrismaStatusEqualsParam{
 		data: builder.Field{
@@ -10189,14 +9616,14 @@ func (r orderQueryStatusString) Equals(value string) orderWithPrismaStatusEquals
 	}
 }
 
-func (r orderQueryStatusString) EqualsIfPresent(value *string) orderWithPrismaStatusEqualsParam {
+func (r orderQueryStatusStatus) EqualsIfPresent(value *Status) orderWithPrismaStatusEqualsParam {
 	if value == nil {
 		return orderWithPrismaStatusEqualsParam{}
 	}
 	return r.Equals(*value)
 }
 
-func (r orderQueryStatusString) Order(direction SortOrder) orderDefaultParam {
+func (r orderQueryStatusStatus) Order(direction SortOrder) orderDefaultParam {
 	return orderDefaultParam{
 		data: builder.Field{
 			Name:  "status",
@@ -10205,7 +9632,7 @@ func (r orderQueryStatusString) Order(direction SortOrder) orderDefaultParam {
 	}
 }
 
-func (r orderQueryStatusString) Cursor(cursor string) orderCursorParam {
+func (r orderQueryStatusStatus) Cursor(cursor Status) orderCursorParam {
 	return orderCursorParam{
 		data: builder.Field{
 			Name:  "status",
@@ -10214,7 +9641,7 @@ func (r orderQueryStatusString) Cursor(cursor string) orderCursorParam {
 	}
 }
 
-func (r orderQueryStatusString) In(value []string) orderDefaultParam {
+func (r orderQueryStatusStatus) In(value []Status) orderDefaultParam {
 	return orderDefaultParam{
 		data: builder.Field{
 			Name: "status",
@@ -10228,14 +9655,14 @@ func (r orderQueryStatusString) In(value []string) orderDefaultParam {
 	}
 }
 
-func (r orderQueryStatusString) InIfPresent(value []string) orderDefaultParam {
+func (r orderQueryStatusStatus) InIfPresent(value []Status) orderDefaultParam {
 	if value == nil {
 		return orderDefaultParam{}
 	}
 	return r.In(value)
 }
 
-func (r orderQueryStatusString) NotIn(value []string) orderDefaultParam {
+func (r orderQueryStatusStatus) NotIn(value []Status) orderDefaultParam {
 	return orderDefaultParam{
 		data: builder.Field{
 			Name: "status",
@@ -10249,182 +9676,14 @@ func (r orderQueryStatusString) NotIn(value []string) orderDefaultParam {
 	}
 }
 
-func (r orderQueryStatusString) NotInIfPresent(value []string) orderDefaultParam {
+func (r orderQueryStatusStatus) NotInIfPresent(value []Status) orderDefaultParam {
 	if value == nil {
 		return orderDefaultParam{}
 	}
 	return r.NotIn(value)
 }
 
-func (r orderQueryStatusString) Lt(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "lt",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) LtIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.Lt(*value)
-}
-
-func (r orderQueryStatusString) Lte(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "lte",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) LteIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.Lte(*value)
-}
-
-func (r orderQueryStatusString) Gt(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "gt",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) GtIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.Gt(*value)
-}
-
-func (r orderQueryStatusString) Gte(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "gte",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) GteIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.Gte(*value)
-}
-
-func (r orderQueryStatusString) Contains(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "contains",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) ContainsIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.Contains(*value)
-}
-
-func (r orderQueryStatusString) StartsWith(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "startsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) StartsWithIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.StartsWith(*value)
-}
-
-func (r orderQueryStatusString) EndsWith(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "endsWith",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) EndsWithIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.EndsWith(*value)
-}
-
-func (r orderQueryStatusString) Mode(value QueryMode) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "mode",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-func (r orderQueryStatusString) ModeIfPresent(value *QueryMode) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.Mode(*value)
-}
-
-func (r orderQueryStatusString) Not(value string) orderDefaultParam {
+func (r orderQueryStatusStatus) Not(value Status) orderDefaultParam {
 	return orderDefaultParam{
 		data: builder.Field{
 			Name: "status",
@@ -10438,62 +9697,14 @@ func (r orderQueryStatusString) Not(value string) orderDefaultParam {
 	}
 }
 
-func (r orderQueryStatusString) NotIfPresent(value *string) orderDefaultParam {
+func (r orderQueryStatusStatus) NotIfPresent(value *Status) orderDefaultParam {
 	if value == nil {
 		return orderDefaultParam{}
 	}
 	return r.Not(*value)
 }
 
-// deprecated: Use StartsWith instead.
-
-func (r orderQueryStatusString) HasPrefix(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "starts_with",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-// deprecated: Use StartsWithIfPresent instead.
-func (r orderQueryStatusString) HasPrefixIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.HasPrefix(*value)
-}
-
-// deprecated: Use EndsWith instead.
-
-func (r orderQueryStatusString) HasSuffix(value string) orderDefaultParam {
-	return orderDefaultParam{
-		data: builder.Field{
-			Name: "status",
-			Fields: []builder.Field{
-				{
-					Name:  "ends_with",
-					Value: value,
-				},
-			},
-		},
-	}
-}
-
-// deprecated: Use EndsWithIfPresent instead.
-func (r orderQueryStatusString) HasSuffixIfPresent(value *string) orderDefaultParam {
-	if value == nil {
-		return orderDefaultParam{}
-	}
-	return r.HasSuffix(*value)
-}
-
-func (r orderQueryStatusString) Field() orderPrismaFields {
+func (r orderQueryStatusStatus) Field() orderPrismaFields {
 	return orderFieldStatus
 }
 
@@ -12761,7 +11972,6 @@ type vendorActions struct {
 }
 
 var vendorOutput = []builder.Output{
-	{Name: "id"},
 	{Name: "userId"},
 	{Name: "business_name"},
 	{Name: "tax_pin"},
@@ -12932,83 +12142,83 @@ func (p vendorSetParam) field() builder.Field {
 
 func (p vendorSetParam) vendorModel() {}
 
-type VendorWithPrismaIDEqualsSetParam interface {
+type VendorWithPrismaUserIDEqualsSetParam interface {
 	field() builder.Field
 	getQuery() builder.Query
 	equals()
 	vendorModel()
-	idField()
+	userIDField()
 }
 
-type VendorWithPrismaIDSetParam interface {
+type VendorWithPrismaUserIDSetParam interface {
 	field() builder.Field
 	getQuery() builder.Query
 	vendorModel()
-	idField()
+	userIDField()
 }
 
-type vendorWithPrismaIDSetParam struct {
+type vendorWithPrismaUserIDSetParam struct {
 	data  builder.Field
 	query builder.Query
 }
 
-func (p vendorWithPrismaIDSetParam) field() builder.Field {
+func (p vendorWithPrismaUserIDSetParam) field() builder.Field {
 	return p.data
 }
 
-func (p vendorWithPrismaIDSetParam) getQuery() builder.Query {
+func (p vendorWithPrismaUserIDSetParam) getQuery() builder.Query {
 	return p.query
 }
 
-func (p vendorWithPrismaIDSetParam) vendorModel() {}
+func (p vendorWithPrismaUserIDSetParam) vendorModel() {}
 
-func (p vendorWithPrismaIDSetParam) idField() {}
+func (p vendorWithPrismaUserIDSetParam) userIDField() {}
 
-type VendorWithPrismaIDWhereParam interface {
+type VendorWithPrismaUserIDWhereParam interface {
 	field() builder.Field
 	getQuery() builder.Query
 	vendorModel()
-	idField()
+	userIDField()
 }
 
-type vendorWithPrismaIDEqualsParam struct {
+type vendorWithPrismaUserIDEqualsParam struct {
 	data  builder.Field
 	query builder.Query
 }
 
-func (p vendorWithPrismaIDEqualsParam) field() builder.Field {
+func (p vendorWithPrismaUserIDEqualsParam) field() builder.Field {
 	return p.data
 }
 
-func (p vendorWithPrismaIDEqualsParam) getQuery() builder.Query {
+func (p vendorWithPrismaUserIDEqualsParam) getQuery() builder.Query {
 	return p.query
 }
 
-func (p vendorWithPrismaIDEqualsParam) vendorModel() {}
+func (p vendorWithPrismaUserIDEqualsParam) vendorModel() {}
 
-func (p vendorWithPrismaIDEqualsParam) idField() {}
+func (p vendorWithPrismaUserIDEqualsParam) userIDField() {}
 
-func (vendorWithPrismaIDSetParam) settable()  {}
-func (vendorWithPrismaIDEqualsParam) equals() {}
+func (vendorWithPrismaUserIDSetParam) settable()  {}
+func (vendorWithPrismaUserIDEqualsParam) equals() {}
 
-type vendorWithPrismaIDEqualsUniqueParam struct {
+type vendorWithPrismaUserIDEqualsUniqueParam struct {
 	data  builder.Field
 	query builder.Query
 }
 
-func (p vendorWithPrismaIDEqualsUniqueParam) field() builder.Field {
+func (p vendorWithPrismaUserIDEqualsUniqueParam) field() builder.Field {
 	return p.data
 }
 
-func (p vendorWithPrismaIDEqualsUniqueParam) getQuery() builder.Query {
+func (p vendorWithPrismaUserIDEqualsUniqueParam) getQuery() builder.Query {
 	return p.query
 }
 
-func (p vendorWithPrismaIDEqualsUniqueParam) vendorModel() {}
-func (p vendorWithPrismaIDEqualsUniqueParam) idField()     {}
+func (p vendorWithPrismaUserIDEqualsUniqueParam) vendorModel() {}
+func (p vendorWithPrismaUserIDEqualsUniqueParam) userIDField() {}
 
-func (vendorWithPrismaIDEqualsUniqueParam) unique() {}
-func (vendorWithPrismaIDEqualsUniqueParam) equals() {}
+func (vendorWithPrismaUserIDEqualsUniqueParam) unique() {}
+func (vendorWithPrismaUserIDEqualsUniqueParam) equals() {}
 
 type VendorWithPrismaUserEqualsSetParam interface {
 	field() builder.Field
@@ -13087,84 +12297,6 @@ func (p vendorWithPrismaUserEqualsUniqueParam) userField()   {}
 
 func (vendorWithPrismaUserEqualsUniqueParam) unique() {}
 func (vendorWithPrismaUserEqualsUniqueParam) equals() {}
-
-type VendorWithPrismaUserIDEqualsSetParam interface {
-	field() builder.Field
-	getQuery() builder.Query
-	equals()
-	vendorModel()
-	userIDField()
-}
-
-type VendorWithPrismaUserIDSetParam interface {
-	field() builder.Field
-	getQuery() builder.Query
-	vendorModel()
-	userIDField()
-}
-
-type vendorWithPrismaUserIDSetParam struct {
-	data  builder.Field
-	query builder.Query
-}
-
-func (p vendorWithPrismaUserIDSetParam) field() builder.Field {
-	return p.data
-}
-
-func (p vendorWithPrismaUserIDSetParam) getQuery() builder.Query {
-	return p.query
-}
-
-func (p vendorWithPrismaUserIDSetParam) vendorModel() {}
-
-func (p vendorWithPrismaUserIDSetParam) userIDField() {}
-
-type VendorWithPrismaUserIDWhereParam interface {
-	field() builder.Field
-	getQuery() builder.Query
-	vendorModel()
-	userIDField()
-}
-
-type vendorWithPrismaUserIDEqualsParam struct {
-	data  builder.Field
-	query builder.Query
-}
-
-func (p vendorWithPrismaUserIDEqualsParam) field() builder.Field {
-	return p.data
-}
-
-func (p vendorWithPrismaUserIDEqualsParam) getQuery() builder.Query {
-	return p.query
-}
-
-func (p vendorWithPrismaUserIDEqualsParam) vendorModel() {}
-
-func (p vendorWithPrismaUserIDEqualsParam) userIDField() {}
-
-func (vendorWithPrismaUserIDSetParam) settable()  {}
-func (vendorWithPrismaUserIDEqualsParam) equals() {}
-
-type vendorWithPrismaUserIDEqualsUniqueParam struct {
-	data  builder.Field
-	query builder.Query
-}
-
-func (p vendorWithPrismaUserIDEqualsUniqueParam) field() builder.Field {
-	return p.data
-}
-
-func (p vendorWithPrismaUserIDEqualsUniqueParam) getQuery() builder.Query {
-	return p.query
-}
-
-func (p vendorWithPrismaUserIDEqualsUniqueParam) vendorModel() {}
-func (p vendorWithPrismaUserIDEqualsUniqueParam) userIDField() {}
-
-func (vendorWithPrismaUserIDEqualsUniqueParam) unique() {}
-func (vendorWithPrismaUserIDEqualsUniqueParam) equals() {}
 
 type VendorWithPrismaBusinessNameEqualsSetParam interface {
 	field() builder.Field
@@ -15655,7 +14787,6 @@ func (r userActions) CreateOne(
 	_email UserWithPrismaEmailSetParam,
 	_password UserWithPrismaPasswordSetParam,
 	_salt UserWithPrismaSaltSetParam,
-	_role UserWithPrismaRoleSetParam,
 
 	optional ...UserSetParam,
 ) userCreateOne {
@@ -15675,7 +14806,6 @@ func (r userActions) CreateOne(
 	fields = append(fields, _email.field())
 	fields = append(fields, _password.field())
 	fields = append(fields, _salt.field())
-	fields = append(fields, _role.field())
 
 	for _, q := range optional {
 		fields = append(fields, q.field())
@@ -15879,7 +15009,6 @@ func (r orderActions) CreateOne(
 	_user OrderWithPrismaUserSetParam,
 	_product OrderWithPrismaProductSetParam,
 	_quantity OrderWithPrismaQuantitySetParam,
-	_status OrderWithPrismaStatusSetParam,
 
 	optional ...OrderSetParam,
 ) orderCreateOne {
@@ -15897,7 +15026,6 @@ func (r orderActions) CreateOne(
 	fields = append(fields, _user.field())
 	fields = append(fields, _product.field())
 	fields = append(fields, _quantity.field())
-	fields = append(fields, _status.field())
 
 	for _, q := range optional {
 		fields = append(fields, q.field())
@@ -26205,7 +25333,6 @@ func (r userUpsertOne) Create(
 	_email UserWithPrismaEmailSetParam,
 	_password UserWithPrismaPasswordSetParam,
 	_salt UserWithPrismaSaltSetParam,
-	_role UserWithPrismaRoleSetParam,
 
 	optional ...UserSetParam,
 ) userUpsertOne {
@@ -26218,7 +25345,6 @@ func (r userUpsertOne) Create(
 	fields = append(fields, _email.field())
 	fields = append(fields, _password.field())
 	fields = append(fields, _salt.field())
-	fields = append(fields, _role.field())
 
 	for _, q := range optional {
 		fields = append(fields, q.field())
@@ -26274,7 +25400,6 @@ func (r userUpsertOne) CreateOrUpdate(
 	_email UserWithPrismaEmailSetParam,
 	_password UserWithPrismaPasswordSetParam,
 	_salt UserWithPrismaSaltSetParam,
-	_role UserWithPrismaRoleSetParam,
 
 	optional ...UserSetParam,
 ) userUpsertOne {
@@ -26287,7 +25412,6 @@ func (r userUpsertOne) CreateOrUpdate(
 	fields = append(fields, _email.field())
 	fields = append(fields, _password.field())
 	fields = append(fields, _salt.field())
-	fields = append(fields, _role.field())
 
 	for _, q := range optional {
 		fields = append(fields, q.field())
@@ -26664,7 +25788,6 @@ func (r orderUpsertOne) Create(
 	_user OrderWithPrismaUserSetParam,
 	_product OrderWithPrismaProductSetParam,
 	_quantity OrderWithPrismaQuantitySetParam,
-	_status OrderWithPrismaStatusSetParam,
 
 	optional ...OrderSetParam,
 ) orderUpsertOne {
@@ -26675,7 +25798,6 @@ func (r orderUpsertOne) Create(
 	fields = append(fields, _user.field())
 	fields = append(fields, _product.field())
 	fields = append(fields, _quantity.field())
-	fields = append(fields, _status.field())
 
 	for _, q := range optional {
 		fields = append(fields, q.field())
@@ -26729,7 +25851,6 @@ func (r orderUpsertOne) CreateOrUpdate(
 	_user OrderWithPrismaUserSetParam,
 	_product OrderWithPrismaProductSetParam,
 	_quantity OrderWithPrismaQuantitySetParam,
-	_status OrderWithPrismaStatusSetParam,
 
 	optional ...OrderSetParam,
 ) orderUpsertOne {
@@ -26740,7 +25861,6 @@ func (r orderUpsertOne) CreateOrUpdate(
 	fields = append(fields, _user.field())
 	fields = append(fields, _product.field())
 	fields = append(fields, _quantity.field())
-	fields = append(fields, _status.field())
 
 	for _, q := range optional {
 		fields = append(fields, q.field())

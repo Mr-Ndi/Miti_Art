@@ -21,7 +21,7 @@ func init() {
 	if err != nil {
 		log.Println("Error loading .env file:", err)
 	} else {
-		log.Println(".env file loaded successfully.")
+		// log.Println(".env file loaded successfully.")
 	}
 
 	secretKey = os.Getenv("SECRET_KEY")

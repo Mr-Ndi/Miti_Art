@@ -9,7 +9,7 @@ func InitDB() *miti_art.PrismaClient {
 	prisma := miti_art.NewClient()
 
 	if err := prisma.Connect(); err != nil {
-		log.Fatalf("❌ Failed to connect to Prisma: %v", err)
+		log.Fatalf("\n\n❌ Failed to connect to Prisma: %v", err)
 	}
 	log.Println("\n\n✅ Connected to Prisma successfully")
 	return prisma

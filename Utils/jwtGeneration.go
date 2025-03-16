@@ -17,7 +17,7 @@ func init() {
 	if err != nil {
 		fmt.Println("Error loading .env file:", err)
 	} else {
-		fmt.Println(".env file loaded successfully.")
+		// fmt.Println(".env file loaded successfully.")
 	}
 
 	secret = os.Getenv("SECRET_KEY")
@@ -25,7 +25,7 @@ func init() {
 	if secret == "" {
 		fmt.Println("SECRET_KEY is not set! Check your .env file.")
 	} else {
-		fmt.Println("SECRET_KEY loaded successfully:", secret)
+		// fmt.Println("SECRET_KEY loaded successfully:", secret)
 	}
 }
 

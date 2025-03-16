@@ -4,6 +4,7 @@ import (
 	utils "MITI_ART/Utils"
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 
 	"MITI_ART/prisma/miti_art"
@@ -16,7 +17,10 @@ import (
 )
 
 func init() {
-	_ = godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 }
 
 // Verify password using Argon2
@@ -41,16 +45,25 @@ func checkPasswordHash(password, hash, salt string) bool {
 // Seed an admin user (Creates if absent)
 func SeedAdmin(prisma *miti_art.PrismaClient) {
 	ctx := context.Background()
-	adminEmail := os.Getenv("ADMIN_EMAIL")
-	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	adminEmail := os.Getenv("ADMAIL")
+	adminPassword := os.Getenv("ADPASSWORD")
 	firstName := os.Getenv("FirstName")
 	otherName := os.Getenv("OtherName")
+
+	if adminEmail == "" || adminPassword == "" {
+		log.Println("Missing credential environment variable. Admin user cannot be seeded.")
+		return
+	}
 
 	existingAdmin, err := prisma.User.FindUnique(
 		miti_art.User.Email.Equals(adminEmail),
 	).Exec(ctx)
 
-	if err != nil || existingAdmin == nil {
+	if err != nil {
+		log.Println("Database error while searching for admin:", err)
+		return
+	}
+	if existingAdmin == nil {
 		hashedPassword, salt, err := utils.HashPassword(adminPassword)
 		if err != nil {
 			panic("Failed to hash admin password: " + err.Error())
@@ -62,7 +75,7 @@ func SeedAdmin(prisma *miti_art.PrismaClient) {
 			miti_art.User.Email.Set(adminEmail),
 			miti_art.User.Password.Set(hashedPassword),
 			miti_art.User.Salt.Set(salt),
-			miti_art.User.Role.Set("admin"),
+			miti_art.User.Role.Set("ADMIN"),
 		).Exec(ctx)
 
 		if err != nil {
@@ -85,8 +98,8 @@ func Login(ctx context.Context, prisma *miti_art.PrismaClient, email string, pas
 	).Exec(ctx)
 
 	if err != nil || user == nil {
-		adminEmail := os.Getenv("ADMIN_EMAIL")
-		adminPassword := os.Getenv("ADMIN_PASSWORD")
+		adminEmail := os.Getenv("ADMAIL")
+		adminPassword := os.Getenv("ADPASSWORD")
 		if email == adminEmail && password == adminPassword {
 			SeedAdmin(prisma)
 		}
@@ -111,8 +124,6 @@ func Login(ctx context.Context, prisma *miti_art.PrismaClient, email string, pas
 		fmt.Println("Token generation failed:", err)
 		return "", err
 	}
-
-	fmt.Println("✅ Token generated successfully:", token)
 
 	return token, nil
 }

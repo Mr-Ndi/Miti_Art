@@ -46,6 +46,9 @@ func RegisterVendor(prisma *miti_art.PrismaClient, VendorEmail string, VendorFir
 
 	if err != nil {
 		return "", errors.New("failed to register user: " + err.Error())
+	} else if newUser.ID == "" {
+		return "", errors.New("failed to retrieve user ID for vendor creation")
+
 	}
 
 	// Creating a user record inside Vendor table

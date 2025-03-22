@@ -64,10 +64,10 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 	}
 
 	message, err := service.RegisterVendor(prisma, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin, req.ShopName)
-	fmt.Println("Calling RegisterVendor with:", VendorEmail, VendorFirstName, VendorOtherName, role, req.VendorPassword, req.VendorTin, req.ShopName)
+	// fmt.Println("Calling RegisterVendor with:", VendorEmail, VendorFirstName, VendorOtherName, role, req.VendorPassword, req.VendorTin, req.ShopName)
 
 	if err != nil {
-		fmt.Println("Error from RegisterVendor:", err)
+		fmt.Println("Error from RegisterVendor Services:", err)
 		if err.Error() == "user with that email already registered" {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		} else {

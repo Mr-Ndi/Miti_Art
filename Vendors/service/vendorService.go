@@ -1,31 +1,25 @@
 package service
 
 import (
+	models "MITI_ART/Models"
 	Utils "MITI_ART/Utils"
-	"MITI_ART/prisma/miti_art"
-	"context"
 	"errors"
-	"fmt"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
-// RegisterVendor registers a new vendor with manual transaction handling
-func RegisterVendor(prisma *miti_art.PrismaClient, VendorEmail string, VendorFirstName string, VendorOtherName string, VendorPassword string, role string, VendorTin int, ShopName string) (string, error) {
-	ctx := context.Background()
+// RegisterVendor registers a new vendor using GORM transactions
+func RegisterVendor(db *gorm.DB, VendorEmail string, VendorFirstName string, VendorOtherName string, VendorPassword string, role string, VendorTin int, ShopName string) (string, error) {
+	// Convert role string to Role ENUM
+	userRole := models.Role(strings.ToUpper(role))
 
 	// Check if user already exists
-	existingUser, err := prisma.User.FindUnique(
-		miti_art.User.Email.Equals(VendorEmail),
-	).Exec(ctx)
-
-	if err != nil {
+	var existingUser models.User
+	if err := db.Where("email = ?", VendorEmail).First(&existingUser).Error; err == nil {
+		return "", errors.New("user already exists")
+	} else if err != gorm.ErrRecordNotFound {
 		return "", errors.New("database error: " + err.Error())
-	}
-
-	if existingUser == nil {
-		fmt.Println("No existing user found with email:", VendorEmail) // Debugging log
-	} else {
-		fmt.Println("Existing user found:", existingUser.ID)
 	}
 
 	// Hash the password
@@ -34,51 +28,47 @@ func RegisterVendor(prisma *miti_art.PrismaClient, VendorEmail string, VendorFir
 		return "", errors.New("failed to hash password")
 	}
 
-	// Ensure the role is correctly set as an ENUM
-	userRole := miti_art.Role(strings.ToUpper(role))
-
-	// Start transaction
-	_, err = prisma.Prisma.ExecuteRaw("BEGIN").Exec(ctx)
-	if err != nil {
-		return "", errors.New("failed to start transaction: " + err.Error())
+	// Begin transaction
+	tx := db.Begin()
+	if tx.Error != nil {
+		return "", errors.New("failed to start transaction: " + tx.Error.Error())
 	}
 
 	// Rollback function in case of failure
 	rollback := func() {
-		prisma.Prisma.ExecuteRaw("ROLLBACK").Exec(ctx)
+		tx.Rollback()
 	}
 
-	// Insert user
-	newUser, err := prisma.User.CreateOne(
-		miti_art.User.FirstName.Set(VendorFirstName),
-		miti_art.User.OtherName.Set(VendorOtherName),
-		miti_art.User.Email.Set(VendorEmail),
-		miti_art.User.Password.Set(hashedPassword),
-		miti_art.User.Salt.Set(salt),
-		miti_art.User.Role.Set(userRole),
-	).Exec(ctx)
+	// Insert new user
+	newUser := models.User{
+		FirstName: VendorFirstName,
+		OtherName: VendorOtherName,
+		Email:     VendorEmail,
+		Password:  hashedPassword,
+		Salt:      salt,
+		Role:      userRole,
+	}
 
-	if err != nil {
+	if err := tx.Create(&newUser).Error; err != nil {
 		rollback()
 		return "", errors.New("failed to register user: " + err.Error())
 	}
 
 	// Insert vendor linked to user
-	_, err = prisma.Vendor.CreateOne(
-		miti_art.Vendor.User.Link(miti_art.User.ID.Equals(newUser.ID)),
-		miti_art.Vendor.BusinessName.Set(ShopName),
-		miti_art.Vendor.TaxPin.Set(VendorTin),
-		miti_art.Vendor.Approved.Set(false),
-	).Exec(ctx)
+	newVendor := models.Vendor{
+		UserID:       newUser.ID, // Link vendor to newly created user
+		BusinessName: ShopName,
+		TaxPin:       int64(VendorTin),
+		Approved:     false,
+	}
 
-	if err != nil {
+	if err := tx.Create(&newVendor).Error; err != nil {
 		rollback()
 		return "", errors.New("failed to register vendor: " + err.Error())
 	}
 
 	// Commit transaction
-	_, err = prisma.Prisma.ExecuteRaw("COMMIT").Exec(ctx)
-	if err != nil {
+	if err := tx.Commit().Error; err != nil {
 		rollback()
 		return "", errors.New("failed to commit transaction: " + err.Error())
 	}

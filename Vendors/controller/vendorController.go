@@ -3,16 +3,16 @@ package controller
 import (
 	utils "MITI_ART/Utils"
 	"MITI_ART/Vendors/service"
-	"MITI_ART/prisma/miti_art"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
+func RegisterHandle(c *gin.Context, db *gorm.DB) {
 	vendorToken := c.GetHeader("Authorization")
 	tokenParts := strings.Split(vendorToken, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
@@ -63,7 +63,7 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 		return
 	}
 
-	message, err := service.RegisterVendor(prisma, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin, req.ShopName)
+	message, err := service.RegisterVendor(db, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin, req.ShopName)
 	// fmt.Println("Calling RegisterVendor with:", VendorEmail, VendorFirstName, VendorOtherName, role, req.VendorPassword, req.VendorTin, req.ShopName)
 
 	if err != nil {

@@ -17,7 +17,6 @@ func main() {
 
 	// database stuffs
 	database.ConnectDB()
-	// defer prisma.Disconnect()
 
 	// Routes setup
 	kibamba.AdminRoutes(r, database.DB)

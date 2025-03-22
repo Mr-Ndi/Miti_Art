@@ -8,6 +8,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // Global DB instance
@@ -23,7 +24,12 @@ func ConnectDB() {
 	}
 
 	// Connect to PostgreSQL
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+		// NamingStrategy: schema.NamingStrategy{
+		// 	SingularTable: true,
+		// },
+	})
 	if err != nil {
 		log.Fatal("--------------------------------------------------------------")
 		log.Fatalf("Failed to connect to database: %v", err)

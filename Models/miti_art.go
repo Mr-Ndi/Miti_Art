@@ -69,7 +69,7 @@ type Product struct {
 type Order struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID    uuid.UUID `gorm:"not null"`
-	User      User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	User      User      `gorm:"references:ID;constraint:OnDelete:CASCADE"`
 	ProductID uuid.UUID `gorm:"not null"`
 	Product   Product   `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
 	Quantity  int       `gorm:"not null"`

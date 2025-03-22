@@ -14,7 +14,7 @@ func RegisterVendor(db *gorm.DB, VendorEmail string, VendorFirstName string, Ven
 	// Convert role string to Role ENUM
 	userRole := models.Role(strings.ToUpper(role))
 
-	// Check if user already exists
+	// Checking if user already exists
 	var existingUser models.User
 	if err := db.Where("email = ?", VendorEmail).First(&existingUser).Error; err == nil {
 		return "", errors.New("user already exists")
@@ -22,13 +22,13 @@ func RegisterVendor(db *gorm.DB, VendorEmail string, VendorFirstName string, Ven
 		return "", errors.New("database error: " + err.Error())
 	}
 
-	// Hash the password
+	// Hashing the password dukoresheje Utils.HashPassword
 	hashedPassword, salt, err := Utils.HashPassword(VendorPassword)
 	if err != nil {
 		return "", errors.New("failed to hash password")
 	}
 
-	// Begin transaction
+	// Begin transaction for multiple insertinons muri database yacu
 	tx := db.Begin()
 	if tx.Error != nil {
 		return "", errors.New("failed to start transaction: " + tx.Error.Error())
@@ -39,7 +39,7 @@ func RegisterVendor(db *gorm.DB, VendorEmail string, VendorFirstName string, Ven
 		tx.Rollback()
 	}
 
-	// Insert new user
+	// Insert new user wumucuruzi
 	newUser := models.User{
 		FirstName: VendorFirstName,
 		OtherName: VendorOtherName,
@@ -56,7 +56,7 @@ func RegisterVendor(db *gorm.DB, VendorEmail string, VendorFirstName string, Ven
 
 	// Insert vendor linked to user
 	newVendor := models.Vendor{
-		UserID:       newUser.ID, // Link vendor to newly created user
+		UserID:       newUser.ID,
 		BusinessName: ShopName,
 		TaxPin:       int64(VendorTin),
 		Approved:     false,

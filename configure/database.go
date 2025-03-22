@@ -1,16 +1,38 @@
 package configure
 
 import (
-	"MITI_ART/prisma/miti_art"
 	"log"
+	"os"
+
+	models "MITI_ART/Models"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func InitDB() *miti_art.PrismaClient {
-	prisma := miti_art.NewClient()
+// Global DB instance
+var DB *gorm.DB
 
-	if err := prisma.Connect(); err != nil {
-		log.Fatalf("\n\n❌ Failed to connect to Prisma: %v", err)
+func ConnectDB() {
+	// Get the database URL from environment variables
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		log.Fatal("❌ DATABASE_URL is not set in environment variables")
 	}
-	log.Println("\n\n✅ Connected to Prisma successfully")
-	return prisma
+
+	// Connect to PostgreSQL
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("❌ Failed to connect to database: %v", err)
+	}
+
+	// Run AutoMigrate to apply schema changes
+	err = db.AutoMigrate(&models.User{}, &models.Vendor{}, &models.Product{}, &models.Order{}, &models.Wishlist{})
+	if err != nil {
+		log.Fatalf("❌ Migration failed: %v", err)
+	}
+
+	// Assign DB instance to global variable
+	DB = db
+	log.Println("✅ Connected to PostgreSQL and migrated successfully!")
 }

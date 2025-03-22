@@ -1,19 +1,20 @@
 package services
 
 import (
+	models "MITI_ART/Models"
 	utils "MITI_ART/Utils"
 	"bytes"
 	"fmt"
 	"log"
 	"os"
 
-	"MITI_ART/prisma/miti_art"
 	"context"
 	"encoding/base64"
 	"errors"
 
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/argon2"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -43,8 +44,7 @@ func checkPasswordHash(password, hash, salt string) bool {
 }
 
 // Seed an admin user (Creates if absent)
-func SeedAdmin(prisma *miti_art.PrismaClient) {
-	ctx := context.Background()
+func SeedAdmin(db *gorm.DB) {
 	adminEmail := os.Getenv("ADMAIL")
 	adminPassword := os.Getenv("ADPASSWORD")
 	firstName := os.Getenv("FirstName")
@@ -55,32 +55,33 @@ func SeedAdmin(prisma *miti_art.PrismaClient) {
 		return
 	}
 
-	existingAdmin, err := prisma.User.FindUnique(
-		miti_art.User.Email.Equals(adminEmail),
-	).Exec(ctx)
-
-	if err != nil {
+	var existingAdmin models.User
+	err := db.Where("email = ?", adminEmail).First(&existingAdmin).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
 		log.Println("Database error while searching for admin:", err)
 		return
 	}
-	if existingAdmin == nil {
+	if err == gorm.ErrRecordNotFound {
 		hashedPassword, salt, err := utils.HashPassword(adminPassword)
 		if err != nil {
 			panic("Failed to hash admin password: " + err.Error())
 		}
-
-		_, err = prisma.User.CreateOne(
-			miti_art.User.FirstName.Set(firstName),
-			miti_art.User.OtherName.Set(otherName),
-			miti_art.User.Email.Set(adminEmail),
-			miti_art.User.Password.Set(hashedPassword),
-			miti_art.User.Salt.Set(salt),
-			miti_art.User.Role.Set("ADMIN"),
-		).Exec(ctx)
-
+		admin := models.User{
+			FirstName: firstName,
+			OtherName: otherName,
+			Email:     adminEmail,
+			Password:  hashedPassword,
+			Salt:      salt,
+			Role:      "ADMIN",
+		}
+		err = db.Create(&admin).Error
 		if err != nil {
 			panic("Failed to create admin user: " + err.Error())
+		} else {
+			log.Println("Admin user created successfully")
 		}
+	} else {
+		log.Println("Admin user already exists")
 	}
 }
 
@@ -92,38 +93,34 @@ func DebugHashPassword(password, salt string) string {
 }
 
 // Login function
-func Login(ctx context.Context, prisma *miti_art.PrismaClient, email string, password string) (string, error) {
-	user, err := prisma.User.FindUnique(
-		miti_art.User.Email.Equals(email),
-	).Exec(ctx)
+func Login(ctx context.Context, db *gorm.DB, email string, password string) (string, error) {
+	var user models.User
+	err := db.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			adminEmail := os.Getenv("ADMAIL")
+			adminPassword := os.Getenv("ADPASSWORD")
 
-	if err != nil || user == nil {
-		adminEmail := os.Getenv("ADMAIL")
-		adminPassword := os.Getenv("ADPASSWORD")
-		if email == adminEmail && password == adminPassword {
-			SeedAdmin(prisma)
-		}
-
-		user, err = prisma.User.FindUnique(
-			miti_art.User.Email.Equals(email),
-		).Exec(ctx)
-
-		if err != nil || user == nil {
-			return "", errors.New("failed, contact admins")
+			if email == adminEmail && password == adminPassword {
+				SeedAdmin(db)
+			}
+			err := db.Where("email = ?", email).First(&user).Error
+			if err != nil {
+				return "", errors.New("failed, I mean creating admins")
+			}
+		} else {
+			return "", errors.New("database error")
 		}
 	}
-
 	if !checkPasswordHash(password, user.Password, user.Salt) {
 		fmt.Println("Login failed: Wrong password")
 		return "", errors.New("invalid credentials / Wrong password")
 	}
-
 	payload := map[string]interface{}{"email": user.Email, "role": user.Role}
 	token, err := utils.GenerateToken(payload)
 	if err != nil {
 		fmt.Println("Token generation failed:", err)
 		return "", err
 	}
-
 	return token, nil
 }

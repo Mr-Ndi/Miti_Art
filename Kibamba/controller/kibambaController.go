@@ -6,12 +6,12 @@ import (
 
 	"MITI_ART/Kibamba/services"
 	utils "MITI_ART/Utils"
-	"MITI_ART/prisma/miti_art"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func LoginHandler(c *gin.Context, prisma *miti_art.PrismaClient) {
+func LoginHandler(c *gin.Context, db *gorm.DB) {
 	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -22,7 +22,7 @@ func LoginHandler(c *gin.Context, prisma *miti_art.PrismaClient) {
 		return
 	}
 
-	token, err := services.Login(context.Background(), prisma, req.Email, req.Password)
+	token, err := services.Login(context.Background(), db, req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return

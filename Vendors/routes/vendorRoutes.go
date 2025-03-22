@@ -2,16 +2,16 @@ package routes
 
 import (
 	controller "MITI_ART/Vendors/controller"
-	"MITI_ART/prisma/miti_art"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func VendorsRoutes(router *gin.Engine, prisma *miti_art.PrismaClient) {
+func VendorsRoutes(router *gin.Engine, db *gorm.DB) {
 	vendor := router.Group("/vendor")
 	{
 		vendor.POST("/register", func(c *gin.Context) {
-			controller.RegisterHandle(c, prisma)
+			controller.RegisterHandle(c, db)
 		})
 	}
 }

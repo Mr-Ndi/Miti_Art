@@ -16,13 +16,13 @@ func main() {
 	r.SetTrustedProxies([]string{})
 
 	// database stuffs
-	prisma := database.InitDB()
-	defer prisma.Disconnect()
+	database.ConnectDB()
+	// defer prisma.Disconnect()
 
 	// Routes setup
-	kibamba.AdminRoutes(r, prisma)
-	client.ClientRoutes(r, prisma)
-	vendor.VendorsRoutes(r, prisma)
+	kibamba.AdminRoutes(r, database.DB)
+	client.ClientRoutes(r, database.DB)
+	vendor.VendorsRoutes(r, database.DB)
 
 	fmt.Println("Server is running on port 8080")
 	r.Run(":8080")

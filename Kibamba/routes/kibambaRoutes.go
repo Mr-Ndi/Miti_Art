@@ -3,12 +3,12 @@ package routes
 import (
 	controllers "MITI_ART/Kibamba/controller"
 	middlewares "MITI_ART/middleware"
-	"MITI_ART/prisma/miti_art"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func AdminRoutes(router *gin.Engine, prisma *miti_art.PrismaClient) {
+func AdminRoutes(router *gin.Engine, db *gorm.DB) {
 	admin := router.Group("/admin")
 	admin.Use(middlewares.AuthMiddleware())
 	{
@@ -17,7 +17,7 @@ func AdminRoutes(router *gin.Engine, prisma *miti_art.PrismaClient) {
 	user := router.Group("/user")
 	{
 		user.POST("/login", func(c *gin.Context) {
-			controllers.LoginHandler(c, prisma)
+			controllers.LoginHandler(c, db)
 		})
 	}
 }

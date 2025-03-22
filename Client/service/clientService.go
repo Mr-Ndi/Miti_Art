@@ -1,27 +1,23 @@
 package service
 
 import (
+	models "MITI_ART/Models"
 	Utils "MITI_ART/Utils"
-	"MITI_ART/prisma/miti_art"
-	"context"
 	"errors"
+
+	"gorm.io/gorm"
 )
 
 // RegisterClient registers a new client
-func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFirstName string, ClientOtherName string, ClientPassword string) (string, error) {
-	ctx := context.Background()
+func RegisterClient(db *gorm.DB, ClientEmail string, ClientFirstName string, ClientOtherName string, ClientPassword string) (string, error) {
 
 	// Check if user already exists
-	existingUser, err := prisma.User.FindUnique(
-		miti_art.User.Email.Equals(ClientEmail),
-	).Exec(ctx)
+	var existingUser models.User
 
-	if err != nil && err.Error() != "ErrNotFound" {
-		return "", errors.New("database error: " + err.Error())
-	}
-
-	if existingUser != nil {
+	if err := db.Where("email = ?", ClientEmail).First(&existingUser).Error; err == nil {
 		return "", errors.New("user with that email already registered")
+	} else if err != gorm.ErrRecordNotFound {
+		return "", errors.New("database error: " + err.Error())
 	}
 
 	// Hash the password
@@ -31,16 +27,16 @@ func RegisterClient(prisma *miti_art.PrismaClient, ClientEmail string, ClientFir
 	}
 
 	// Create new user
-	_, err = prisma.User.CreateOne(
-		miti_art.User.FirstName.Set(ClientFirstName),
-		miti_art.User.OtherName.Set(ClientOtherName),
-		miti_art.User.Email.Set(ClientEmail),
-		miti_art.User.Password.Set(hashedPassword),
-		miti_art.User.Salt.Set(salt),
-		miti_art.User.Role.Set("customer"),
-	).Exec(ctx)
-
-	if err != nil {
+	newUser := models.User{
+		FirstName: ClientFirstName,
+		OtherName: ClientOtherName,
+		Email:     ClientEmail,
+		Password:  hashedPassword,
+		Salt:      salt,
+		Role:      "customer",
+	}
+	// inserting the given data in the database
+	if err := db.Create(&newUser).Error; err != nil {
 		return "", errors.New("failed to register user: " + err.Error())
 	}
 

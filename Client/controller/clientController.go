@@ -2,14 +2,14 @@ package controller
 
 import (
 	"MITI_ART/Client/service"
-	"MITI_ART/prisma/miti_art"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // RegisterHandle handles function
-func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
+func RegisterHandle(c *gin.Context, db *gorm.DB) {
 	// Request body
 	var req struct {
 		ClientFirstName string `json:"clientFirstName" binding:"required"`
@@ -25,7 +25,7 @@ func RegisterHandle(c *gin.Context, prisma *miti_art.PrismaClient) {
 	}
 
 	// Call service function
-	message, err := service.RegisterClient(prisma, req.ClientEmail, req.ClientFirstName, req.ClientOtherName, req.ClientPassword)
+	message, err := service.RegisterClient(db, req.ClientEmail, req.ClientFirstName, req.ClientOtherName, req.ClientPassword)
 
 	// Handle service response
 	if err != nil {

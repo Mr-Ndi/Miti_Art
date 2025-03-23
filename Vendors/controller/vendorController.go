@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -126,6 +127,25 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		VendorPassword string `json:"vendorPassword" binding:"required"`
 		VendorTin      int    `json:"vendorTin" binding:"required"`
 		ShopName       string `json:"ShopName" binding:"required"`
+
+		product := Product{
+		ID:       uuid.New(),
+		VendorID: req.VendorID,
+		Name:     req.Name,
+		Price:    req.Price,
+		Category: req.Category,
+		Material: req.Material,
+		ImageURL: req.ImageURL,
+	}
+
+	if err := db.Create(&product).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create product"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Product created successfully", "product": product})
+}
+
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -57,6 +57,10 @@ type User struct {
 	Salt      string    `gorm:"not null"`
 	Role      Role      `gorm:"type:varchar(20);default:'CUSTOMER'"`
 
+	// Location Fields
+	City    string `gorm:"not null;default:'Kigali'"`
+	Address string `gorm:"not null;default:'KN 123 ST'"`
+
 	// Relations
 	Vendor   *Vendor    `gorm:"foreignKey:UserID"`
 	Orders   []Order    `gorm:"foreignKey:UserID"`
@@ -70,10 +74,6 @@ type Vendor struct {
 	BusinessName string    `gorm:"not null"`
 	TaxPin       int64     `gorm:"unique;not null"`
 	Approved     bool      `gorm:"default:false"`
-
-	// Location Fields
-	City    string `gorm:"not null;default:'Kigali'"`
-	Address string `gorm:"not null;default:'KN 123 ST'"`
 
 	// Relations
 	Products []Product `gorm:"foreignKey:VendorID"`

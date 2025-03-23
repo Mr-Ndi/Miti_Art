@@ -45,3 +45,6 @@ secrets.json
 
 # Docker
 docker-compose.override.yml
+
+# Database schema
+Models/miti_art

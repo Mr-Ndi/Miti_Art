@@ -128,14 +128,12 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		VendorTin      int    `json:"vendorTin" binding:"required"`
 		ShopName       string `json:"ShopName" binding:"required"`
 
-		product := Product{
-		ID:       uuid.New(),
-		VendorID: req.VendorID,
-		Name:     req.Name,
-		Price:    req.Price,
-		Category: req.Category,
-		Material: req.Material,
-		ImageURL: req.ImageURL,
+		Name     string    `json:"name" binding:"required"`
+		Price    float64   `json:"price" binding:"required"`
+		Category string    `json:"category" binding:"required"`
+		Material Material  `json:"material" binding:"required"`
+		ImageURL string    `json:"imageUrl" binding:"required"`
+		VendorID uuid.UUID `json:"vendorId" binding:"required"`
 	}
 
 	if err := db.Create(&product).Error; err != nil {
@@ -146,6 +144,16 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Product created successfully", "product": product})
 }
 
+func RegisterHandle(c *gin.Context, db *gorm.DB) {
+
+	product := Product{
+		ID:       uuid.New(), // Generate UUID in Go
+		VendorID: req.VendorID,
+		Name:     req.Name,
+		Price:    req.Price,
+		Category: req.Category,
+		Material: req.Material,
+		ImageURL: req.ImageURL,
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

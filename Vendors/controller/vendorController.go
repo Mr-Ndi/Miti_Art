@@ -83,6 +83,13 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 }
 
 func UploadHandle(c *gin.Context, db *gorm.DB) {
+	var req struct {
+		Name     string  `json:"name" binding:"required"`
+		Price    float64 `json:"price" binding:"required"`
+		Category string  `json:"category" binding:"required"`
+		Material string  `json:"material" binding:"required"`
+	}
+
 	vendorToken := c.GetHeader("Authorization")
 	tokenParts := strings.Split(vendorToken, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
@@ -100,14 +107,26 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	}
 
 	VendorEmail, emailOk := payload["VendorEmail"].(string)
+	// Retriving id from the db
 	VendorID, err := utils.GetVendorIDByEmail(db, VendorEmail)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Error mwana": err.Error()})
 		return
-
 	}
-	// fmt.Println("Vendor ID:", VendorID)
+	// Getting an image from the request
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Image not found"})
+		return
+	}
+	defer file.Close()
+
+	// Calling the UploadImage function from the utils package
+	imagePath, err := utils.UploadImage(file, header)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	if !emailOk {
 		fmt.Println("Token payload missing required fields")
@@ -127,20 +146,12 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	var req struct {
-		Name     string  `json:"name" binding:"required"`
-		Price    float64 `json:"price" binding:"required"`
-		Category string  `json:"category" binding:"required"`
-		Material string  `json:"material" binding:"required"`
-		ImageURL string  `json:"imageUrl" binding:"required"`
-	}
-
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	message, err := service.RegisterProduct(db, VendorID, req.Name, req.Price, req.Category, req.Material, req.ImageURL)
+	message, err := service.RegisterProduct(db, VendorID, req.Name, req.Price, req.Category, req.Material, imagePath)
 
 	if err != nil {
 		fmt.Println("Error from RegisterVendor Services:", err)

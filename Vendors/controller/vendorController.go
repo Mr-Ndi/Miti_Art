@@ -101,11 +101,8 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	}
 
 	VendorEmail, emailOk := payload["VendorEmail"].(string)
-	// VendorFirstName, firstNameOk := payload["VendorFirstName"].(string)
-	// VendorID, vendoridOk := payload["VendorID"].(int64)
-	// role, roleOk := payload["role"].(string)
+	// VendorID uuid.UUID `json:"vendorId" binding:"required"`
 
-	// if !emailOk || !firstNameOk || !vendoridOk || !roleOk {
 	if !emailOk {
 		fmt.Println("Token payload missing required fields")
 		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token payload"})
@@ -138,15 +135,6 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// product := Product{
-	// 	ID:       uuid.New(),
-	// 	VendorID: VendorID,
-	// 	Name:     req.Name,
-	// 	Price:    req.Price,
-	// 	Category: req.Category,
-	// 	Material: req.Material,
-	// 	ImageURL: req.ImageURL,
-	// }
 	message, err := service.RegisterProduct(db, req.VendorID, req.Name, req.Price, req.Category, req.Material, req.ImageURL)
 
 	if err != nil {

@@ -101,11 +101,12 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	}
 
 	VendorEmail, emailOk := payload["VendorEmail"].(string)
-	VendorFirstName, firstNameOk := payload["VendorFirstName"].(string)
-	VendorOtherName, otherNameOk := payload["VendorOtherName"].(string)
-	role, roleOk := payload["role"].(string)
+	// VendorFirstName, firstNameOk := payload["VendorFirstName"].(string)
+	// VendorID, vendoridOk := payload["VendorID"].(int64)
+	// role, roleOk := payload["role"].(string)
 
-	if !emailOk || !firstNameOk || !otherNameOk || !roleOk {
+	// if !emailOk || !firstNameOk || !vendoridOk || !roleOk {
+	if !emailOk {
 		fmt.Println("Token payload missing required fields")
 		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token payload"})
 		return
@@ -124,45 +125,29 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	}
 
 	var req struct {
-		VendorPassword string `json:"vendorPassword" binding:"required"`
-		VendorTin      int    `json:"vendorTin" binding:"required"`
-		ShopName       string `json:"ShopName" binding:"required"`
-
+		VendorID uuid.UUID `json:"vendorId" binding:"required"`
 		Name     string    `json:"name" binding:"required"`
 		Price    float64   `json:"price" binding:"required"`
 		Category string    `json:"category" binding:"required"`
-		Material Material  `json:"material" binding:"required"`
+		Material string    `json:"material" binding:"required"`
 		ImageURL string    `json:"imageUrl" binding:"required"`
-		VendorID uuid.UUID `json:"vendorId" binding:"required"`
-	}
-
-	if err := db.Create(&product).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create product"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "Product created successfully", "product": product})
-}
-
-func RegisterHandle(c *gin.Context, db *gorm.DB) {
-
-	product := Product{
-		ID:       uuid.New(), // Generate UUID in Go
-		VendorID: req.VendorID,
-		Name:     req.Name,
-		Price:    req.Price,
-		Category: req.Category,
-		Material: req.Material,
-		ImageURL: req.ImageURL,
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	message, err := service.RegisterVendor(db, VendorEmail, VendorFirstName, VendorOtherName, req.VendorPassword, role, req.VendorTin, req.ShopName)
-	// fmt.Println("Calling RegisterVendor with:", VendorEmail, VendorFirstName, VendorOtherName, role, req.VendorPassword, req.VendorTin, req.ShopName)
+	// product := Product{
+	// 	ID:       uuid.New(),
+	// 	VendorID: VendorID,
+	// 	Name:     req.Name,
+	// 	Price:    req.Price,
+	// 	Category: req.Category,
+	// 	Material: req.Material,
+	// 	ImageURL: req.ImageURL,
+	// }
+	message, err := service.RegisterProduct(db, req.VendorID, req.Name, req.Price, req.Category, req.Material, req.ImageURL)
 
 	if err != nil {
 		fmt.Println("Error from RegisterVendor Services:", err)

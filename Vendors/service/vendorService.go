@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -74,4 +75,27 @@ func RegisterVendor(db *gorm.DB, VendorEmail string, VendorFirstName string, Ven
 	}
 
 	return "Vendor registered successfully", nil
+}
+
+// Registering Products for a vendor
+func RegisterProduct(db *gorm.DB, VendorID uuid.UUID, ProductName string, ProductPrice float64, ProductCategory string, ProductMaterial string, ProductImageURL string) (string, error) {
+
+	// Convert material string to Material ENUM
+	productMaterial := models.Material(strings.ToUpper(ProductMaterial))
+
+	// Insert product
+	newProduct := models.Product{
+		VendorID: VendorID,
+		Name:     ProductName,
+		Price:    ProductPrice,
+		Category: ProductCategory,
+		Material: productMaterial,
+		ImageURL: ProductImageURL,
+	}
+
+	if err := db.Create(&newProduct).Error; err != nil {
+		return "", errors.New("failed to register product: " + err.Error())
+	}
+
+	return "Product registered successfully", nil
 }

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -101,7 +100,14 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	}
 
 	VendorEmail, emailOk := payload["VendorEmail"].(string)
-	// VendorID uuid.UUID `json:"vendorId" binding:"required"`
+	VendorID, err := utils.GetVendorIDByEmail(db, VendorEmail)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error mwana": err.Error()})
+		return
+
+	}
+	// fmt.Println("Vendor ID:", VendorID)
 
 	if !emailOk {
 		fmt.Println("Token payload missing required fields")
@@ -122,12 +128,11 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	}
 
 	var req struct {
-		VendorID uuid.UUID `json:"vendorId" binding:"required"`
-		Name     string    `json:"name" binding:"required"`
-		Price    float64   `json:"price" binding:"required"`
-		Category string    `json:"category" binding:"required"`
-		Material string    `json:"material" binding:"required"`
-		ImageURL string    `json:"imageUrl" binding:"required"`
+		Name     string  `json:"name" binding:"required"`
+		Price    float64 `json:"price" binding:"required"`
+		Category string  `json:"category" binding:"required"`
+		Material string  `json:"material" binding:"required"`
+		ImageURL string  `json:"imageUrl" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -135,7 +140,7 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	message, err := service.RegisterProduct(db, req.VendorID, req.Name, req.Price, req.Category, req.Material, req.ImageURL)
+	message, err := service.RegisterProduct(db, VendorID, req.Name, req.Price, req.Category, req.Material, req.ImageURL)
 
 	if err != nil {
 		fmt.Println("Error from RegisterVendor Services:", err)

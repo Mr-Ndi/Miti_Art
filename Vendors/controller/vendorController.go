@@ -4,6 +4,7 @@ import (
 	utils "MITI_ART/Utils"
 	"MITI_ART/Vendors/service"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -106,7 +107,7 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	VendorEmail, emailOk := payload["VendorEmail"].(string)
+	VendorEmail, emailOk := payload["email"].(string)
 	// Retriving id from the db
 	VendorID, err := utils.GetVendorIDByEmail(db, VendorEmail)
 	if err != nil {
@@ -116,9 +117,11 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	// Getting an image from the request
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
+		log.Println("Error receiving file:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Image not found"})
 		return
 	}
+	log.Println("File received:", header.Filename)
 	defer file.Close()
 
 	// Calling the UploadImage function from the utils package

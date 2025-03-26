@@ -8,6 +8,8 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -31,24 +33,25 @@ func GetVendorIDByEmail(db *gorm.DB, email string) (uuid.UUID, error) {
 }
 
 func UploadImage(file multipart.File, header *multipart.FileHeader) (string, error) {
-	uploadDir := "uploads" // Directory where images are stored
+	uploadDir := "uploads"
 
-	// Ensure upload directory exists
 	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create upload directory: %w", err)
 	}
 
-	// Generate file path
-	filePath := filepath.Join(uploadDir, header.Filename)
+	fileType := header.Header.Get("Content-Type")
+	if !strings.HasPrefix(fileType, "image/") {
+		return "", fmt.Errorf("only image files are allowed")
+	}
 
-	// Create the destination file
+	filePath := filepath.Join(uploadDir, fmt.Sprintf("%d-%s", time.Now().Unix(), header.Filename))
+
 	outFile, err := os.Create(filePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create file: %w", err)
 	}
 	defer outFile.Close()
 
-	// Copy file content to the new file
 	_, err = io.Copy(outFile, file)
 	if err != nil {
 		return "", fmt.Errorf("failed to copy file: %w", err)

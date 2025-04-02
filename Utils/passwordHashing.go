@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-// Hash password using Argon2
+// Hash password using Argon2 instead of bycript
 func HashPassword(password string) (string, string, error) {
 	saltBytes, err := GenerateSalt()
 	if err != nil {

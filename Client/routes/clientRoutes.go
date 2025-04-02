@@ -13,5 +13,8 @@ func ClientRoutes(router *gin.Engine, db *gorm.DB) {
 		user.POST("/register", func(c *gin.Context) {
 			controller.RegisterHandle(c, db)
 		})
+		user.GET("/furniture", func(c *gin.Context) {
+			controller.RegisterHandle(c, db)
+		})
 	}
 }

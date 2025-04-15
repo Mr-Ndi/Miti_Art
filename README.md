@@ -110,17 +110,53 @@ This backend uses **GORM** as the ORM (Object-Relational Mapping) tool to manage
    ```sh
    go mod tidy
    ```
-3. Set up environment variables (e.g., `.env` file for database credentials and JWT secret).
+
+### 3. Set Up Environment Variables
+
+You’ll need to configure the environment variables for your application. Create a `.env` file in the root of your project and define the following variables:
+
+#### Database Connection
+```env
+DATABASE_URL=your_database_url
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=your_db_user
+DB_NAME=your_db_name
+```
+
+#### Secret Key for JWT Authentication
+```env
+SECRET_KEY=your_jwt_secret_key
+```
+
+#### Application Port
+```env
+APP_PORT=8080
+```
+
+#### Admin Credentials (for email sending)
+```env
+ADMIN_EMAIL=admin@example.com
+ADMIN_EMAIL_PASS=your_admin_password
+```
+
+#### Link for Invitation Emails or Verification
+```env
+LINK=http://localhost:8080/verify
+```
+
 4. Run migrations to set up the database:
    ```sh
    go run main.go migrate
    ```
+
 5. Start the server:
    ```sh
    go run main.go
    ```
 
 ## Contributing
+
 ### Forking the Repository
 To contribute to this project:
 1. Fork the repository on GitHub.
@@ -146,4 +182,4 @@ To contribute to this project:
 
 ## License
 MIT License. See `LICENSE` file for details.
-
+```

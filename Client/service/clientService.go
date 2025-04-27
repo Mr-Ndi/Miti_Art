@@ -43,6 +43,7 @@ func RegisterClient(db *gorm.DB, ClientEmail string, ClientFirstName string, Cli
 	return "User registered successfully", nil
 }
 
+// Returning all products to the clients
 func Products(db *gorm.DB) ([]models.Product, error) {
 	var products []models.Product
 	results := db.Find(&products)

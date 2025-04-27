@@ -13,6 +13,12 @@ import (
 	"gorm.io/gorm"
 )
 
+func VendorRegisterRoute(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		RegisterHandle(c, db)
+	}
+}
+
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
 	vendorToken := c.GetHeader("Authorization")
 	tokenParts := strings.Split(vendorToken, " ")

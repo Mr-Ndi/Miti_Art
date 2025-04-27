@@ -57,3 +57,6 @@ func Product(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
 	results := db.Find(&product, "id = ?", id)
 	return product, results.Error
 }
+
+// Registering order
+func Order(db *gorm.bd)

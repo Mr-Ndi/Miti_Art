@@ -71,5 +71,9 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 
 // Using id to place order while logged in
 func CreateOrder(c *gin.Context, db *gorm.DB) {
-
+	var req struct {
+		ProductID uuid.UUID `gorm:"not null"`
+		Quantity  int       `gorm:"not null"`
+		UserID    uuid.UUID `gorm:"not null"`
+	}
 }

@@ -59,6 +59,9 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 	idParam := c.Param("id")
 
 	id, err := uuid.Parse(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+	}
 	products, err := service.Product(db, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})

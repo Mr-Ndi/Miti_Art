@@ -16,5 +16,8 @@ func ClientRoutes(router *gin.Engine, db *gorm.DB) {
 		user.GET("/furniture", func(c *gin.Context) {
 			controller.GetFurniture(c, db)
 		})
+		user.GET("/furniture/:id", func(c *gin.Context) {
+			controller.GetFurnitureDetails(c, db)
+		})
 	}
 }

@@ -43,3 +43,7 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 		"email":   req.ClientEmail,
 	})
 }
+
+func GetFurniture(c *gin.Context, db *gorm.DB) {
+
+}

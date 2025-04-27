@@ -5,6 +5,7 @@ import (
 	Utils "MITI_ART/Utils"
 	"errors"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -48,4 +49,11 @@ func Products(db *gorm.DB) ([]models.Product, error) {
 	var products []models.Product
 	results := db.Find(&products)
 	return products, results.Error
+}
+
+// Returning single products to the clients
+func Product(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
+	var product []models.Product
+	results := db.Find(&product, "id = ?", id)
+	return product, results.Error
 }

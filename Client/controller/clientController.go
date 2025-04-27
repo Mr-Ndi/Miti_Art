@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -47,6 +48,18 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 // Using Furniture finder function in service
 func GetFurniture(c *gin.Context, db *gorm.DB) {
 	products, err := service.Products(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"data": products})
+}
+
+// Using single Furniture finder function in service
+func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
+	idParam := c.Param("id")
+
+	id, err := uuid.Parse(idParam)
+	products, err := service.Product(db, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
 	}

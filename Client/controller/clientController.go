@@ -68,3 +68,8 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": products})
 }
+
+// Using id to place order while logged in
+func CreateOrder(c *gin.Context, db *gorm.DB) {
+
+}

@@ -91,3 +91,8 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 		"orderID": id,
 	})
 }
+
+// Using id to add element on wish list
+func AppendWishList(c *gin.Context, db *gorm.DB) {
+
+}

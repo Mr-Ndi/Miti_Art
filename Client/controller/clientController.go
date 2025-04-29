@@ -76,4 +76,8 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 		Quantity  int       `gorm:"not null"`
 		UserID    uuid.UUID `gorm:"not null"`
 	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request:" + err.Error()})
+		return
+	}
 }

@@ -60,5 +60,15 @@ func Product(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
 
 // Registering order
 func Order(db *gorm.DB, ProductID uuid.UUID, Quantity int, UserID uuid.UUID) (uuid.UUID, string, error) {
+	// Inserting the new product in the database
+	newOrder := models.Order{
+		UserID:    UserID,
+		ProductID: ProductID,
+		Quantity:  Quantity,
+	}
 
+	if err := db.Create(&newOrder).Error; err != nil {
+		return uuid.Nil, "", errors.New("failed to register product: " + err.Error())
+	}
+	return newOrder.ID, "Order has been Placed", nil
 }

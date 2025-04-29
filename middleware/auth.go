@@ -7,6 +7,7 @@ import (
 	utils "MITI_ART/Utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -36,15 +37,24 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		email, emailExists := claims["email"].(string)
 		role, roleExists := claims["role"].(string)
+		userIDStr, idExists := claims["user_id"].(string)
 
-		if !emailExists || !roleExists {
+		if !emailExists || !roleExists || !idExists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
+			c.Abort()
+			return
+		}
+
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID format"})
 			c.Abort()
 			return
 		}
 
 		c.Set("userEmail", email)
 		c.Set("userRole", role)
+		c.Set("userID", userID)
 
 		c.Next()
 	}

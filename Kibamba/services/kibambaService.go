@@ -116,7 +116,7 @@ func Login(ctx context.Context, db *gorm.DB, email string, password string) (str
 		fmt.Println("Login failed: Wrong password")
 		return "", errors.New("invalid credentials / Wrong password")
 	}
-	payload := map[string]interface{}{"email": user.Email, "role": user.Role}
+	payload := map[string]interface{}{"email": user.Email, "role": user.Role, "user_id": user.ID.String()}
 	token, err := utils.GenerateToken(payload)
 	if err != nil {
 		fmt.Println("Token generation failed:", err)

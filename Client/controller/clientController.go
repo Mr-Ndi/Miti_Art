@@ -80,4 +80,14 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request:" + err.Error()})
 		return
 	}
+	id, message, err := service.Order(db, req.ProductID, req.Quantity, req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": message,
+		"orderID": id,
+	})
 }

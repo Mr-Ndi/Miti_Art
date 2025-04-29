@@ -59,4 +59,6 @@ func Product(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
 }
 
 // Registering order
-func Order(db *gorm.bd)
+func Order(db *gorm.DB, ProductID uuid.UUID, Quantity int, UserID uuid.UUID) (uuid.UUID, string, error) {
+
+}

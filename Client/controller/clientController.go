@@ -104,4 +104,25 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 	var req struct {
 		ProductID uuid.UUID `gorm:"not null"`
 	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request:" + err.Error()})
+		return
+	}
+	userIDAny, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDAny.(uuid.UUID)
+
+	id, message, err := service.Order(db, req.ProductID, userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": message,
+		"orderID": id,
+	})
 }

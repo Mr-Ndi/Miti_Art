@@ -31,5 +31,9 @@ func ClientRoutes(router *gin.Engine, db *gorm.DB) {
 		user.POST("/wished-item/:id", middleware.AuthMiddleware(), func(c *gin.Context) {
 			controller.AppendWishList(c, db)
 		})
+		// Secure the Orders!
+		user.POST("/my-orders", middleware.AuthMiddleware(), func(c *gin.Context) {
+			controller.GetOrders(c, db)
+		})
 	}
 }

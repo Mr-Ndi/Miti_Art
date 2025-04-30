@@ -126,3 +126,18 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 		"orderID": id,
 	})
 }
+
+// Using Furniture finder function in service
+func GetOrders(c *gin.Context, db *gorm.DB) {
+	userIDAny, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDAny.(uuid.UUID)
+	Orders, err := service.Orders(db, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"orders": Orders})
+}

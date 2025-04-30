@@ -115,7 +115,7 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 	}
 	userID := userIDAny.(uuid.UUID)
 
-	id, message, err := service.Order(db, req.ProductID, userID)
+	id, message, err := service.WishList(db, req.ProductID, userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

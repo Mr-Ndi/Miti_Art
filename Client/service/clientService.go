@@ -72,3 +72,17 @@ func Order(db *gorm.DB, ProductID uuid.UUID, Quantity int, UserID uuid.UUID) (uu
 	}
 	return newOrder.ID, "Order has been Placed", nil
 }
+
+// Adding product on the wish list
+func WishList(db *gorm.DB, ProductID uuid.UUID, UserID uuid.UUID) (uuid.UUID, string, error) {
+	// Inserting the new product in the database to wishlist table
+	newElement := models.Order{
+		UserID:    UserID,
+		ProductID: ProductID,
+	}
+
+	if err := db.Create(&newElement).Error; err != nil {
+		return uuid.Nil, "", errors.New("failed to register product: " + err.Error())
+	}
+	return newElement.ID, "Order has been Placed", nil
+}

@@ -5,6 +5,7 @@ import (
 	Utils "MITI_ART/Utils"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -92,20 +93,26 @@ func WishList(db *gorm.DB, ProductID uuid.UUID, UserID uuid.UUID) (uuid.UUID, st
 	return newElement.ID, "Order has been Placed", nil
 }
 
-// Returning all products orders to the clients
-func Orders(db *gorm.DB, id uuid.UUID) ([]models.Order, error) {
-	var orders []models.Order
-	err := db.Where("UserId = ?", id).Find(&orders).Error
+// Single endpoint with optional filters for Returning all products orders to the clients who ordered
+func GetUserOrders(db *gorm.DB, userID uuid.UUID, status *string, startTime *time.Time, endTime *time.Time) ([]models.Order, error) {
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("orders not found with ID: %s", id)
+	query := db.
+		Preload("Product").
+		Where("user_id = ?", userID)
+
+	if status != nil {
+		query = query.Where("status = ?", *status)
 	}
-	return orders, err
-}
 
-// Returning single products to the clients
-func MyOrder(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
-	var product []models.Product
-	results := db.Find(&product, "id = ?", id)
-	return product, results.Error
+	if startTime != nil && endTime != nil {
+		query = query.Where("created_at BETWEEN ? AND ?", *startTime, *endTime)
+	} else if startTime != nil {
+		query = query.Where("created_at >= ?", *startTime)
+	} else if endTime != nil {
+		query = query.Where("created_at <= ?", *endTime)
+	}
+
+	var orders []models.Order
+	err := query.Find(&orders).Error
+	return orders, err
 }

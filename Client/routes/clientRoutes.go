@@ -33,7 +33,7 @@ func ClientRoutes(router *gin.Engine, db *gorm.DB) {
 		})
 		// Secure the Orders!
 		user.POST("/my-orders", middleware.AuthMiddleware(), func(c *gin.Context) {
-			controller.GetOrders(c, db)
+			controller.ListUserOrders(c, db)
 		})
 	}
 }

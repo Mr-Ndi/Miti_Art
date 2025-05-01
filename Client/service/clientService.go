@@ -93,14 +93,14 @@ func WishList(db *gorm.DB, ProductID uuid.UUID, UserID uuid.UUID) (uuid.UUID, st
 }
 
 // Returning all products orders to the clients
-func Orders(db *gorm.DB, id uuid.UUID) (*models.Order, error) {
-	var orders models.Order
-	err := db.First(&orders, "id = ?", id).Error
+func Orders(db *gorm.DB, id uuid.UUID) ([]models.Order, error) {
+	var orders []models.Order
+	err := db.Where("UserId = ?", id).Find(&orders).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("orders not found with ID: %s", id)
 	}
-	return &orders, err
+	return orders, err
 }
 
 // Returning single products to the clients

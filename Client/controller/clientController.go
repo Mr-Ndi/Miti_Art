@@ -3,6 +3,7 @@ package controller
 import (
 	"MITI_ART/Client/service"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -127,17 +128,24 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 	})
 }
 
-// Using Furniture finder function in service
-func GetOrders(c *gin.Context, db *gorm.DB) {
-	userIDAny, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+func ListUserOrders(c *gin.Context, db *gorm.DB) {
+	userID := c.Param("userID")
+
+	// Parse query parameters
+	status := c.Query("status")
+	start := c.Query("from")
+	end := c.Query("to")
+
+	// Convert to UUID/time
+	uuid := uuid.MustParse(userID)
+	startTime, _ := time.Parse(time.RFC3339, start)
+	endTime, _ := time.Parse(time.RFC3339, end)
+
+	// Call service layer for getting the orders
+	orders, err := service.GetUserOrders(db, uuid, &status, &startTime, &endTime)
+	if err != nil {
 		return
 	}
-	userID := userIDAny.(uuid.UUID)
-	Orders, err := service.Orders(db, userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
-	}
-	c.JSON(http.StatusOK, gin.H{"orders": Orders})
+
+	c.JSON(200, orders)
 }

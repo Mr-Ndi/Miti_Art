@@ -4,6 +4,7 @@ import (
 	models "MITI_ART/Models"
 	Utils "MITI_ART/Utils"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -51,11 +52,15 @@ func Products(db *gorm.DB) ([]models.Product, error) {
 	return products, results.Error
 }
 
-// Returning single products to the clients
-func Product(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
-	var product []models.Product
-	results := db.Find(&product, "id = ?", id)
-	return product, results.Error
+func Product(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
+	var product models.Product
+	err := db.First(&product, "id = ?", id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("product not found with ID: %s", id)
+	}
+
+	return &product, err
 }
 
 // Registering order
@@ -85,4 +90,22 @@ func WishList(db *gorm.DB, ProductID uuid.UUID, UserID uuid.UUID) (uuid.UUID, st
 		return uuid.Nil, "", errors.New("failed to register product: " + err.Error())
 	}
 	return newElement.ID, "Order has been Placed", nil
+}
+
+// Returning all products orders to the clients
+func Orders(db *gorm.DB, id uuid.UUID) (*models.Order, error) {
+	var orders models.Order
+	err := db.First(&orders, "id = ?", id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("orders not found with ID: %s", id)
+	}
+	return &orders, err
+}
+
+// Returning single products to the clients
+func MyOrder(db *gorm.DB, id uuid.UUID) ([]models.Product, error) {
+	var product []models.Product
+	results := db.Find(&product, "id = ?", id)
+	return product, results.Error
 }

@@ -91,34 +91,14 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 }
 
 func UploadHandle(c *gin.Context, db *gorm.DB) {
-	vendorToken := c.GetHeader("Authorization")
-	tokenParts := strings.Split(vendorToken, " ")
-	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+	// Get email set by middleware
+	vendorEmail, exists := c.Get("vendor_email")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	token := tokenParts[1]
-	payload, err := utils.ValidateToken(token)
-	if err != nil {
-		fmt.Println("Token validation error:", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
-		return
-	}
-
-	email, emailOk := payload["email"].(string)
-	exp, expOk := payload["exp"].(float64)
-	if !emailOk || !expOk {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
-		return
-	}
-
-	if exp < float64(time.Now().Unix()) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token has expired"})
-		return
-	}
-
-	VendorID, err := utils.GetVendorIDByEmail(db, email)
+	vendorID, err := utils.GetVendorIDByEmail(db, vendorEmail.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -156,7 +136,7 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	message, err := service.RegisterProduct(db, VendorID, name, price, category, material, imagePath)
+	message, err := service.RegisterProduct(db, vendorID, name, price, category, material, imagePath)
 	if err != nil {
 		fmt.Println("Error from RegisterProduct Services:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -165,6 +145,6 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message":      message,
-		"vendor_email": email,
+		"vendor_email": vendorEmail,
 	})
 }

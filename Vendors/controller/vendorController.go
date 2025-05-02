@@ -148,3 +148,6 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		"vendor_email": vendorEmail,
 	})
 }
+func MyProduct(c *gin.Context, db *gorm.DB) {
+
+}

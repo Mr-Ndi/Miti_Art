@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,90 +91,80 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 }
 
 func UploadHandle(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		Name     string  `json:"name" binding:"required"`
-		Price    float64 `json:"price" binding:"required"`
-		Category string  `json:"category" binding:"required"`
-		Material string  `json:"material" binding:"required"`
-	}
-
 	vendorToken := c.GetHeader("Authorization")
 	tokenParts := strings.Split(vendorToken, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token format"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
 		return
 	}
 
 	token := tokenParts[1]
 	payload, err := utils.ValidateToken(token)
-	// fmt.Printf("Decoded payload: %+v\n", payload)
 	if err != nil {
 		fmt.Println("Token validation error:", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid or expired token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 		return
 	}
 
-	VendorEmail, emailOk := payload["email"].(string)
-	// Retriving id from the db
-	VendorID, err := utils.GetVendorIDByEmail(db, VendorEmail)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"Error mwana": err.Error()})
+	email, emailOk := payload["email"].(string)
+	exp, expOk := payload["exp"].(float64)
+	if !emailOk || !expOk {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
 		return
 	}
-	// Getting an image from the request
+
+	if exp < float64(time.Now().Unix()) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token has expired"})
+		return
+	}
+
+	VendorID, err := utils.GetVendorIDByEmail(db, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Handle file upload
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
 		log.Println("Error receiving file:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Image not found"})
 		return
 	}
-	log.Println("File received:", header.Filename)
 	defer file.Close()
 
-	// Calling the UploadImage function from the utils package
 	imagePath, err := utils.UploadImage(file, header)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if !emailOk {
-		fmt.Println("Token payload missing required fields")
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token payload"})
+	// Parse form fields
+	name := c.PostForm("name")
+	category := c.PostForm("category")
+	material := c.PostForm("material")
+	priceStr := c.PostForm("price")
+
+	if name == "" || category == "" || material == "" || priceStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
 
-	exp, expOk := payload["exp"].(float64)
-	if !expOk {
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token payload cz it is missing expiration time"})
-		return
-	}
-
-	currentTimestamp := float64(time.Now().Unix())
-	if exp < currentTimestamp {
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Token has expired"})
-		return
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	message, err := service.RegisterProduct(db, VendorID, req.Name, req.Price, req.Category, req.Material, imagePath)
-
+	price, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
-		fmt.Println("Error from RegisterVendor Services:", err)
-		if err.Error() == "user with that email already registered" {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid price format"})
+		return
+	}
+
+	message, err := service.RegisterProduct(db, VendorID, name, price, category, material, imagePath)
+	if err != nil {
+		fmt.Println("Error from RegisterProduct Services:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message":      message,
-		"Vendor email": VendorEmail,
+		"vendor_email": email,
 	})
 }

@@ -23,17 +23,13 @@ func ClientRoutes(router *gin.Engine, db *gorm.DB) {
 		user.GET("/furniture/:id", func(c *gin.Context) {
 			controller.GetFurnitureDetails(c, db)
 		})
-		// Secure the order route!
-		user.POST("/order/:id", middleware.AuthMiddleware(), func(c *gin.Context) {
-			controller.CreateOrder(c, db)
-		})
-		// Secure the wishlist route!
-		user.POST("/wished-item/:id", middleware.AuthMiddleware(), func(c *gin.Context) {
-			controller.AppendWishList(c, db)
-		})
-		// Secure the Orders!
-		user.POST("/my-orders", middleware.AuthMiddleware(), func(c *gin.Context) {
-			controller.ListUserOrders(c, db)
-		})
+		// Secured the routes!
+		auth := user.Group("", middleware.AuthMiddleware())
+		{
+			auth.POST("/order/:id", func(c *gin.Context) { controller.CreateOrder(c, db) })
+			auth.POST("/wished-item/:id", func(c *gin.Context) { controller.AppendWishList(c, db) })
+			auth.POST("/my-orders", func(c *gin.Context) { controller.ListUserOrders(c, db) })
+
+		}
 	}
 }

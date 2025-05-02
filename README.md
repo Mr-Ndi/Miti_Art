@@ -179,7 +179,3 @@ To contribute to this project:
    git push origin feature-branch-name
    ```
 6. Open a pull request on the original repository for review.
-
-## License
-MIT License. See `LICENSE` file for details.
-```

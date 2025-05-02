@@ -14,11 +14,10 @@ func VendorsRoutes(router *gin.Engine, db *gorm.DB) {
 		vendor.POST("/register", func(c *gin.Context) {
 			controller.RegisterHandle(c, db)
 		})
-		vendor.POST("/upload", func(c *gin.Context) {
-			controller.UploadHandle(c, db)
-		})
 		auth := vendor.Group("", middlewares.AuthMiddleware())
 		{
+			//Router for enabling vendor to upload a product
+			auth.POST("/upload", func(c *gin.Context) { controller.UploadHandle(c, db) })
 			//Router for getting the product that belongs to the vendor
 			auth.GET("/my-products", func(c *gin.Context) {})
 			//Router for retriving a single product

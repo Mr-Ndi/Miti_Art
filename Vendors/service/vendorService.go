@@ -136,7 +136,6 @@ func DeleteProductByID(db *gorm.DB, productID, vendorID uuid.UUID) error {
 		return fmt.Errorf("you do not own this product")
 	}
 
-	// Check for existing orders
 	var count int64
 	if err := db.Model(&models.Order{}).Where("product_id = ?", productID).Count(&count).Error; err != nil {
 		return fmt.Errorf("failed to check orders: %w", err)
@@ -163,7 +162,6 @@ func EditProductByID(db *gorm.DB, productID, vendorID uuid.UUID, update map[stri
 		return fmt.Errorf("you do not own this product")
 	}
 
-	// Check for existing orders (optional for edit)
 	var count int64
 	if err := db.Model(&models.Order{}).Where("product_id = ?", productID).Count(&count).Error; err != nil {
 		return fmt.Errorf("failed to check orders: %w", err)

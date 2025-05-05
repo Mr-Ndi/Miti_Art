@@ -184,20 +184,31 @@ func MyOrders(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"data": products})
 }
 
-func DeleteById(c *gin.Context, db *gorm.DB) {
+func DeleteProduct(c *gin.Context, db *gorm.DB) {
 	idParam := c.Param("id")
-	id, err := uuid.Parse(idParam)
+	productID, err := uuid.Parse(idParam)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
 	}
-	err = service.DeleteById(db, id)
+
+	vendorEmail, exists := c.Get("vendor_email")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	vendorID, err := utils.GetVendorIDByEmail(db, vendorEmail.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve vendor"})
+		return
+	}
+
+	if err := service.DeleteProductByID(db, productID, vendorID); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
-
 }
 
 func EditProduct(c *gin.Context, db *gorm.DB) {
@@ -208,9 +219,23 @@ func EditProduct(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
+	vendorEmail, exists := c.Get("vendor_email")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	vendorID, err := utils.GetVendorIDByEmail(db, vendorEmail.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve vendor"})
+		return
+	}
+
 	var body struct {
-		Name  string  `json:"name"`
-		Price float64 `json:"price"`
+		Name     string  `json:"name"`
+		Price    float64 `json:"price"`
+		Category string  `json:"category"`
+		Material string  `json:"material"`
+		ImageURL string  `json:"image_url"`
 	}
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -224,12 +249,20 @@ func EditProduct(c *gin.Context, db *gorm.DB) {
 	if body.Price > 0 {
 		updateData["price"] = body.Price
 	}
+	if body.Category != "" {
+		updateData["category"] = body.Category
+	}
+	if body.Material != "" {
+		updateData["material"] = body.Material
+	}
+	if body.ImageURL != "" {
+		updateData["image_url"] = body.ImageURL
+	}
 
-	err = service.EditProductByID(db, productID, updateData)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := service.EditProductByID(db, productID, vendorID, updateData); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Product updated"})
+	c.JSON(http.StatusOK, gin.H{"message": "Product updated successfully"})
 }

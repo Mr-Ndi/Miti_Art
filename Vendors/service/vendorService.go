@@ -126,23 +126,25 @@ func OrderByVendorID(db *gorm.DB, id uuid.UUID) (*models.Order, error) {
 }
 
 // Deleting the product based on the id given
-func DeleteById(db *gorm.DB, id uuid.UUID) error {
-	// Checking if product exists
+func DeleteProductByID(db *gorm.DB, productID, vendorID uuid.UUID) error {
 	var product models.Product
-	if err := db.First(&product, "id = ?", id).Error; err != nil {
+	if err := db.First(&product, "id = ?", productID).Error; err != nil {
 		return fmt.Errorf("product not found")
 	}
 
-	// Checking if product is in any order
+	if product.VendorID != vendorID {
+		return fmt.Errorf("you do not own this product")
+	}
+
+	// Check for existing orders
 	var count int64
-	if err := db.Model(&models.Order{}).Where("product_id = ?", id).Count(&count).Error; err != nil {
+	if err := db.Model(&models.Order{}).Where("product_id = ?", productID).Count(&count).Error; err != nil {
 		return fmt.Errorf("failed to check orders: %w", err)
 	}
 	if count > 0 {
-		return fmt.Errorf("cannot delete: product is associated with %d order(s)", count)
+		return fmt.Errorf("cannot delete a product that has orders")
 	}
 
-	// Deleting product
 	if err := db.Delete(&product).Error; err != nil {
 		return fmt.Errorf("failed to delete product: %w", err)
 	}
@@ -151,22 +153,27 @@ func DeleteById(db *gorm.DB, id uuid.UUID) error {
 }
 
 // Updating if there is zero order made
-func EditProductByID(db *gorm.DB, id uuid.UUID, update map[string]interface{}) error {
+func EditProductByID(db *gorm.DB, productID, vendorID uuid.UUID, update map[string]interface{}) error {
 	var product models.Product
-	if err := db.First(&product, "id = ?", id).Error; err != nil {
+	if err := db.First(&product, "id = ?", productID).Error; err != nil {
 		return fmt.Errorf("product not found")
 	}
 
+	if product.VendorID != vendorID {
+		return fmt.Errorf("you do not own this product")
+	}
+
+	// Check for existing orders (optional for edit)
 	var count int64
-	if err := db.Model(&models.Order{}).Where("product_id = ?", id).Count(&count).Error; err != nil {
-		return err
+	if err := db.Model(&models.Order{}).Where("product_id = ?", productID).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to check orders: %w", err)
 	}
 	if count > 0 {
-		return fmt.Errorf("product is part of existing orders")
+		return fmt.Errorf("cannot edit a product that has orders")
 	}
 
 	if err := db.Model(&product).Updates(update).Error; err != nil {
-		return fmt.Errorf("update failed: %w", err)
+		return fmt.Errorf("failed to update product: %w", err)
 	}
 
 	return nil

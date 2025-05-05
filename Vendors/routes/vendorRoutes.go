@@ -29,7 +29,7 @@ func VendorsRoutes(router *gin.Engine, db *gorm.DB) {
 			//Router for editing the product description
 			auth.POST("/edit-product/:id", func(c *gin.Context) { controller.EditProduct(c, db) })
 			//Router for deleting the posted product
-			auth.POST("/remove-product/:id", func(c *gin.Context) { controller.DeleteById(c, db) })
+			auth.POST("/remove-product/:id", func(c *gin.Context) { controller.DeleteProduct(c, db) })
 		}
 	}
 }

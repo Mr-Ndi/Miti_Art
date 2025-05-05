@@ -149,6 +149,7 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		"vendor_email": vendorEmail,
 	})
 }
+
 func MyProduct(c *gin.Context, db *gorm.DB) {
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
@@ -181,4 +182,18 @@ func MyOrders(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": products})
+}
+
+func DeleteById(c *gin.Context, db *gorm.DB) {
+	idParam := c.Param("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error ": err.Error()})
+	}
+	message, error := service.DeleteById(db, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error :": error.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"data": message})
+
 }

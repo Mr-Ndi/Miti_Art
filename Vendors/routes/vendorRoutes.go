@@ -11,9 +11,11 @@ import (
 func VendorsRoutes(router *gin.Engine, db *gorm.DB) {
 	vendor := router.Group("/vendor")
 	{
+		//Public routes
 		vendor.POST("/register", func(c *gin.Context) {
 			controller.RegisterHandle(c, db)
 		})
+		//Routes available for Authenticated users
 		auth := vendor.Group("", middlewares.AuthMiddleware())
 		{
 			//Router for enabling vendor to upload a product

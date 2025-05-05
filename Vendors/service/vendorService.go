@@ -4,6 +4,7 @@ import (
 	models "MITI_ART/Models"
 	Utils "MITI_ART/Utils"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -98,4 +99,15 @@ func RegisterProduct(db *gorm.DB, VendorID uuid.UUID, ProductName string, Produc
 	}
 
 	return "Product registered successfully", nil
+}
+
+func Product(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
+	var product models.Product
+	err := db.First(&product, "id = ?", id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("product not found with ID: %s", id)
+	}
+
+	return &product, err
 }

@@ -190,10 +190,12 @@ func DeleteById(c *gin.Context, db *gorm.DB) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error ": err.Error()})
 	}
-	message, error := service.DeleteById(db, id)
+	err = service.DeleteById(db, id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"Error :": error.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": message})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
 
 }

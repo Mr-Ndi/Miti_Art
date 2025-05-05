@@ -27,7 +27,7 @@ func VendorsRoutes(router *gin.Engine, db *gorm.DB) {
 			//Router for retriving all orders recomended from his product
 			auth.GET("/required-product", func(c *gin.Context) { controller.MyOrders(c, db) })
 			//Router for editing the product description
-			auth.POST("/edit-product/:id", func(c *gin.Context) {})
+			auth.POST("/edit-product/:id", func(c *gin.Context) { controller.DeleteById(c, db) })
 			//Router for deleting the posted product
 			auth.POST("/remove-product/:id", func(c *gin.Context) {})
 		}

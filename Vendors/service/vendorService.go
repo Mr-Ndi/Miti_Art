@@ -124,3 +124,15 @@ func OrderByVendorID(db *gorm.DB, id uuid.UUID) (*models.Order, error) {
 
 	return &order, err
 }
+
+// Deleting the product based on the id given
+func DeleteById(db *gorm.DB, id uuid.UUID) error {
+	var product models.Product
+	if err := db.First(&product, "id = ?", id).Error; err != nil {
+		return fmt.Errorf("product not found")
+	}
+	if err := db.Delete(&product).Error; err != nil {
+		return fmt.Errorf("failed to delete product: %w", err)
+	}
+	return nil
+}

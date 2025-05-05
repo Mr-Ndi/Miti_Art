@@ -96,3 +96,25 @@ func ViewClients(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"clients": clients})
 }
+
+func ViewVendors(c *gin.Context, db *gorm.DB) {
+	userEmail, exists := c.Get("user_email")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	if userEmail != adminEmail {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	clients, err := services.GetAllClients(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"vendors": clients})
+}

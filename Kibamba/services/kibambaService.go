@@ -124,3 +124,12 @@ func Login(ctx context.Context, db *gorm.DB, email string, password string) (str
 	}
 	return token, nil
 }
+
+// Retriving all customers
+func GetAllClients(db *gorm.DB) ([]models.User, error) {
+	var clients []models.User
+	if err := db.Where("role = ?", "CUSTOMER").Find(&clients).Error; err != nil {
+		return nil, err
+	}
+	return clients, nil
+}

@@ -10,6 +10,7 @@ import (
 	utils "MITI_ART/Utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
@@ -134,4 +135,111 @@ func ViewAllProducts(c *gin.Context, db *gorm.DB) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"products": products})
+}
+
+func EditVendor(c *gin.Context, db *gorm.DB) {
+	var input struct {
+		UserID       string `json:"user_id"`
+		BusinessName string `json:"business_name"`
+		TaxPin       int64  `json:"tax_pin"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	id, err := uuid.Parse(input.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid vendor ID"})
+		return
+	}
+
+	err = services.UpdateVendor(db, id, input.BusinessName, input.TaxPin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Vendor updated successfully"})
+}
+
+func EditClient(c *gin.Context, db *gorm.DB) {
+	var input struct {
+		UserID    string `json:"user_id"`
+		FirstName string `json:"first_name"`
+		OtherName string `json:"other_name"`
+		Phone     string `json:"phone"`
+		Address   string `json:"address"`
+		City      string `json:"city"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	id, err := uuid.Parse(input.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid client ID"})
+		return
+	}
+
+	err = services.UpdateClient(db, id, input.FirstName, input.OtherName, input.Phone, input.City, input.Address)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Client updated successfully"})
+}
+
+func EliminateVendor(c *gin.Context, db *gorm.DB) {
+	var input struct {
+		UserID string `json:"user_id"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	id, err := uuid.Parse(input.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid vendor ID"})
+		return
+	}
+
+	err = services.DeleteVendor(db, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Vendor eliminated successfully"})
+}
+
+func EliminateClient(c *gin.Context, db *gorm.DB) {
+	var input struct {
+		UserID string `json:"user_id"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	id, err := uuid.Parse(input.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid client ID"})
+		return
+	}
+
+	err = services.DeleteClient(db, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Client eliminated successfully"})
 }

@@ -1,7 +1,28 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
+)
+
+// For payment
+type PaymentStatus string
+
+const (
+	PaymentPending PaymentStatus = "PENDING"
+	PaymentSuccess PaymentStatus = "SUCCESS"
+	PaymentFailed  PaymentStatus = "FAILED"
+)
+
+// PaymentMethod Enum
+type PaymentMethod string
+
+const (
+	MethodMomo   PaymentMethod = "MOMO"
+	MethodCard   PaymentMethod = "CARD"
+	MethodBank   PaymentMethod = "BANK"
+	MethodPayPal PaymentMethod = "PAYPAL"
 )
 
 // Role Enum
@@ -104,6 +125,9 @@ type Order struct {
 	Product   Product   `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
 	Quantity  int       `gorm:"not null"`
 	Status    Status    `gorm:"type:varchar(20);default:'PENDING'"`
+
+	PaymentStatus PaymentStatus `gorm:"type:varchar(20);default:'PENDING'"`
+	PaymentRef    string        `gorm:"type:varchar(100);"`
 }
 
 // Wishlist Model
@@ -113,4 +137,15 @@ type Wishlist struct {
 	User      User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	ProductID uuid.UUID `gorm:"not null"`
 	Product   Product   `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
+}
+
+type Payment struct {
+	ID            uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	OrderID       uuid.UUID     `gorm:"not null"`
+	Order         Order         `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE"`
+	Amount        float64       `gorm:"not null"`
+	Method        PaymentMethod `gorm:"type:varchar(20);not null"`
+	Status        PaymentStatus `gorm:"type:varchar(20);default:'PENDING'"`
+	TransactionID string        `gorm:"type:varchar(100);unique"`
+	CreatedAt     time.Time
 }

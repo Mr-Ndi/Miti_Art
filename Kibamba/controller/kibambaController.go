@@ -105,3 +105,32 @@ func ViewVendors(c *gin.Context, db *gorm.DB) {
 	}
 	c.JSON(http.StatusOK, gin.H{"vendors": vendors})
 }
+func ViewOrders(c *gin.Context, db *gorm.DB) {
+	userEmail, exists := c.Get("user_email")
+	if !exists || userEmail != os.Getenv("ADMIN_EMAIL") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	orders, err := service.GetAllOrders(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch orders"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"orders": orders})
+}
+
+func ViewAllProducts(c *gin.Context, db *gorm.DB) {
+	userEmail, exists := c.Get("user_email")
+	if !exists || userEmail != os.Getenv("ADMIN_EMAIL") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	products, err := service.GetAllProducts(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"products": products})
+}

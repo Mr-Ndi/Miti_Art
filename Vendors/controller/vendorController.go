@@ -199,3 +199,37 @@ func DeleteById(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
 
 }
+
+func EditProduct(c *gin.Context, db *gorm.DB) {
+	id := c.Param("id")
+	productID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	var body struct {
+		Name  string  `json:"name"`
+		Price float64 `json:"price"`
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	updateData := map[string]interface{}{}
+	if body.Name != "" {
+		updateData["name"] = body.Name
+	}
+	if body.Price > 0 {
+		updateData["price"] = body.Price
+	}
+
+	err = service.EditProductByID(db, productID, updateData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Product updated"})
+}

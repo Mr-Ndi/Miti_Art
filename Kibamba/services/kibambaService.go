@@ -133,3 +133,12 @@ func GetAllClients(db *gorm.DB) ([]models.User, error) {
 	}
 	return clients, nil
 }
+
+// Retriving all vendors
+func GetAllVendors(db *gorm.DB) ([]models.Vendor, error) {
+	var vendors []models.Vendor
+	if err := db.Preload("User").Find(&vendors).Error; err != nil {
+		return nil, err
+	}
+	return vendors, nil
+}

@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
@@ -161,4 +162,33 @@ func GetAllProducts(db *gorm.DB) ([]models.Product, error) {
 		return nil, err
 	}
 	return products, nil
+}
+
+// UpdateVendor updates vendor details
+func UpdateVendor(db *gorm.DB, id uuid.UUID, businessName string, taxPin int64) error {
+	return db.Model(&models.Vendor{}).Where("user_id = ?", id).Updates(map[string]interface{}{
+		"business_name": businessName,
+		"tax_pin":       taxPin,
+	}).Error
+}
+
+// UpdateClient updates client (user) details
+func UpdateClient(db *gorm.DB, id uuid.UUID, fname, otherName, phone, city, address string) error {
+	return db.Model(&models.User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"first_name": fname,
+		"other_name": otherName,
+		"phone":      phone,
+		"city":       city,
+		"address":    address,
+	}).Error
+}
+
+// DeleteVendor removes a vendor and cascades to products if needed
+func DeleteVendor(db *gorm.DB, id uuid.UUID) error {
+	return db.Delete(&models.Vendor{}, "user_id = ?", id).Error
+}
+
+// DeleteClient removes a client (user) and cascades if needed
+func DeleteClient(db *gorm.DB, id uuid.UUID) error {
+	return db.Delete(&models.User{}, "id = ?", id).Error
 }

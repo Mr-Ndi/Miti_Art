@@ -17,14 +17,10 @@ import (
 
 func GetVendorIDByEmail(db *gorm.DB, email string) (uuid.UUID, error) {
 	var vendor models.Vendor
-
-	// First, find the user with the given email
 	var user models.User
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
 		return uuid.Nil, errors.New("user not found")
 	}
-
-	// Then, use the user ID to find the vendor
 	if err := db.Where("user_id = ?", user.ID).First(&vendor).Error; err != nil {
 		return uuid.Nil, errors.New("vendor not found for this user")
 	}
@@ -58,4 +54,12 @@ func UploadImage(file multipart.File, header *multipart.FileHeader) (string, err
 	}
 
 	return filePath, nil
+}
+
+func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
+	var user models.User
+	if err := db.First(&user, "email = ?", email).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

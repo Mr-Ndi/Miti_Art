@@ -157,7 +157,6 @@ func EditProductByID(db *gorm.DB, id uuid.UUID, update map[string]interface{}) e
 		return fmt.Errorf("product not found")
 	}
 
-	// Don't allow edit if product is ordered
 	var count int64
 	if err := db.Model(&models.Order{}).Where("product_id = ?", id).Count(&count).Error; err != nil {
 		return err

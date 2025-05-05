@@ -15,8 +15,8 @@ func AdminRoutes(router *gin.Engine, db *gorm.DB) {
 		admin.POST("/invite", controllers.InvitationHandler)
 		kibamba := admin.Group("", middlewares.AuthMiddleware())
 		{
-			kibamba.GET("/view-clients", func(c *gin.Context) {})
-			kibamba.GET("/view-vendors", func(c *gin.Context) {})
+			kibamba.GET("/view-clients", func(c *gin.Context) { controllers.ViewClients(c, db) })
+			kibamba.GET("/view-vendors", func(c *gin.Context) { controllers.ViewVendors(c, db) })
 			kibamba.GET("/view-orders", func(c *gin.Context) {})
 			kibamba.GET("/view-products", func(c *gin.Context) {})
 			kibamba.POST("/edit-vendor", func(c *gin.Context) {})

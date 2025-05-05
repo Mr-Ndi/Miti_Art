@@ -17,12 +17,12 @@ func AdminRoutes(router *gin.Engine, db *gorm.DB) {
 		{
 			kibamba.GET("/view-clients", func(c *gin.Context) { controllers.ViewClients(c, db) })
 			kibamba.GET("/view-vendors", func(c *gin.Context) { controllers.ViewVendors(c, db) })
-			kibamba.GET("/view-orders", func(c *gin.Context) {})
-			kibamba.GET("/view-products", func(c *gin.Context) {})
-			kibamba.POST("/edit-vendor", func(c *gin.Context) {})
-			kibamba.POST("/edit-client", func(c *gin.Context) {})
-			kibamba.POST("/eliminate-vendor", func(c *gin.Context) {})
-			kibamba.POST("/eliminate-client", func(c *gin.Context) {})
+			kibamba.GET("/view-orders", func(c *gin.Context) { controllers.ViewOrders(c, db) })
+			kibamba.GET("/view-products", func(c *gin.Context) { controllers.ViewAllProducts(c, db) })
+			kibamba.POST("/edit-vendor", func(c *gin.Context) { controllers.EditVendor(c, db) })
+			kibamba.POST("/edit-client", func(c *gin.Context) { controllers.EditClient(c, db) })
+			kibamba.POST("/eliminate-vendor", func(c *gin.Context) { controllers.EliminateVendor(c, db) })
+			kibamba.POST("/eliminate-client", func(c *gin.Context) { controllers.EliminateClient(c, db) })
 		}
 	}
 	user := router.Group("/user")

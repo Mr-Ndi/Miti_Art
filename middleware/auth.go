@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	utils "MITI_ART/Utils"
@@ -56,6 +57,16 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("userRole", role)
 		c.Set("userID", userID)
 
+		c.Next()
+	}
+}
+func RequireAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userEmail, exists := c.Get("user_email")
+		if !exists || userEmail != os.Getenv("ADMIN_EMAIL") {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Admin access only"})
+			return
+		}
 		c.Next()
 	}
 }

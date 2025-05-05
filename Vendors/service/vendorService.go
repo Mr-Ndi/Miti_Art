@@ -150,23 +150,24 @@ func DeleteById(db *gorm.DB, id uuid.UUID) error {
 	return nil
 }
 
-// Updating the product in case it wasn't booked at all
-func EditProductByID(db *gorm.DB, id uuid.UUID, updateData map[string]interface{}) error {
+// Updating if there is zero order made
+func EditProductByID(db *gorm.DB, id uuid.UUID, update map[string]interface{}) error {
 	var product models.Product
 	if err := db.First(&product, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("product not found")
 	}
 
+	// Don't allow edit if product is ordered
 	var count int64
 	if err := db.Model(&models.Order{}).Where("product_id = ?", id).Count(&count).Error; err != nil {
-		return fmt.Errorf("failed to check order status: %w", err)
+		return err
 	}
 	if count > 0 {
-		return fmt.Errorf("cannot edit product: it is part of %d existing order(s)", count)
+		return fmt.Errorf("product is part of existing orders")
 	}
 
-	if err := db.Model(&product).Updates(updateData).Error; err != nil {
-		return fmt.Errorf("failed to update product: %w", err)
+	if err := db.Model(&product).Updates(update).Error; err != nil {
+		return fmt.Errorf("update failed: %w", err)
 	}
 
 	return nil

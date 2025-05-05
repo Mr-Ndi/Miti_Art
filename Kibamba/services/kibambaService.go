@@ -142,3 +142,23 @@ func GetAllVendors(db *gorm.DB) ([]models.Vendor, error) {
 	}
 	return vendors, nil
 }
+
+// GetAllOrders - fetches all orders with related user and product data
+func GetAllOrders(db *gorm.DB) ([]models.Order, error) {
+	var orders []models.Order
+	err := db.Preload("User").Preload("Product").Find(&orders).Error
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
+}
+
+// GetAllProducts - fetches all products with vendor info
+func GetAllProducts(db *gorm.DB) ([]models.Product, error) {
+	var products []models.Product
+	err := db.Preload("Owner.User").Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}

@@ -105,6 +105,7 @@ func ViewVendors(c *gin.Context, db *gorm.DB) {
 	}
 	c.JSON(http.StatusOK, gin.H{"vendors": vendors})
 }
+
 func ViewOrders(c *gin.Context, db *gorm.DB) {
 	userEmail, exists := c.Get("user_email")
 	if !exists || userEmail != os.Getenv("ADMIN_EMAIL") {
@@ -112,7 +113,7 @@ func ViewOrders(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	orders, err := service.GetAllOrders(db)
+	orders, err := services.GetAllOrders(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch orders"})
 		return
@@ -127,7 +128,7 @@ func ViewAllProducts(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	products, err := service.GetAllProducts(db)
+	products, err := services.GetAllProducts(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
 		return

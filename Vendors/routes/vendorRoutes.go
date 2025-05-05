@@ -23,9 +23,9 @@ func VendorsRoutes(router *gin.Engine, db *gorm.DB) {
 			//Router for getting the product that belongs to the vendor
 			auth.GET("/my-products", func(c *gin.Context) { controller.MyProduct(c, db) })
 			//Router for retriving a single product
-			auth.POST("/my-product/:id", func(c *gin.Context) {})
+			auth.POST("/my-product/:id", func(c *gin.Context) { controller.MyProduct(c, db) })
 			//Router for retriving all orders recomended from his product
-			auth.GET("/required-product", func(c *gin.Context) {})
+			auth.GET("/required-product", func(c *gin.Context) { controller.MyOrders(c, db) })
 			//Router for editing the product description
 			auth.POST("/edit-product/:id", func(c *gin.Context) {})
 			//Router for deleting the posted product

@@ -101,7 +101,7 @@ func RegisterProduct(db *gorm.DB, VendorID uuid.UUID, ProductName string, Produc
 	return "Product registered successfully", nil
 }
 
-func Product(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
+func ProductByVendorID(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
 	var product models.Product
 	err := db.First(&product, "id = ?", id).Error
 

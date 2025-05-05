@@ -165,3 +165,20 @@ func MyProduct(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"data": products})
 }
+
+func MyOrders(c *gin.Context, db *gorm.DB) {
+	idParam := c.Param("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID format"})
+		return
+	}
+
+	products, err := service.OrderByVendorID(db, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": products})
+}

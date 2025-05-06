@@ -124,6 +124,7 @@ type Order struct {
 	ProductID uuid.UUID `gorm:"not null"`
 	Product   Product   `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
 	Quantity  int       `gorm:"not null"`
+	Phone     string    `json:"phone"`
 	Status    Status    `gorm:"type:varchar(20);default:'PENDING'"`
 
 	PaymentStatus PaymentStatus `gorm:"type:varchar(20);default:'PENDING'"`

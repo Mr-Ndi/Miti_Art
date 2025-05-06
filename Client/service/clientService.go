@@ -54,6 +54,7 @@ func Products(db *gorm.DB) ([]models.Product, error) {
 	return products, results.Error
 }
 
+// Returning a product to the clients
 func Product(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
 	var product models.Product
 	err := db.First(&product, "id = ?", id).Error

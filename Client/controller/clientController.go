@@ -77,10 +77,11 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 		Quantity  int       `gorm:"not null"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request:" + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
-	// Get authenticated user ID from middleware context
+
+	// 🔐 Get user ID
 	userIDAny, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -88,15 +89,18 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 	}
 	userID := userIDAny.(uuid.UUID)
 
-	id, message, err := service.Order(db, req.ProductID, req.Quantity, userID)
+	// 🧠 Call service to handle order + payment
+	orderID, amount, message, err := service.HandleOrder(db, req.ProductID, req.Quantity, userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// ✅ Respond
 	c.JSON(http.StatusCreated, gin.H{
 		"message": message,
-		"orderID": id,
+		"orderID": orderID,
+		"amount":  amount,
 	})
 }
 

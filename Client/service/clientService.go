@@ -3,6 +3,7 @@ package service
 import (
 	models "MITI_ART/Models"
 	Utils "MITI_ART/Utils"
+	utils "MITI_ART/Utils"
 	"errors"
 	"fmt"
 	"time"
@@ -65,18 +66,41 @@ func Product(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
 }
 
 // Registering order
-func Order(db *gorm.DB, ProductID uuid.UUID, Quantity int, UserID uuid.UUID) (uuid.UUID, string, error) {
-	// Inserting the new product in the database
-	newOrder := models.Order{
-		UserID:    UserID,
-		ProductID: ProductID,
-		Quantity:  Quantity,
+func HandleOrder(db *gorm.DB, productID uuid.UUID, quantity int, userID uuid.UUID) (uuid.UUID, float64, string, error) {
+	phone, err := utils.GetUserPhoneByID(db, userID)
+	if err != nil {
+		return uuid.Nil, 0, "", err
 	}
 
-	if err := db.Create(&newOrder).Error; err != nil {
-		return uuid.Nil, "", errors.New("failed to register product: " + err.Error())
+	var product models.Product
+	if err := db.First(&product, "id = ?", productID).Error; err != nil {
+		return uuid.Nil, 0, "", errors.New("product not found")
 	}
-	return newOrder.ID, "Order has been Placed", nil
+	amount := product.Price * float64(quantity)
+
+	newOrder := models.Order{
+		UserID:    userID,
+		ProductID: productID,
+		Quantity:  quantity,
+	}
+	if err := db.Create(&newOrder).Error; err != nil {
+		return uuid.Nil, 0, "", errors.New("failed to register order: " + err.Error())
+	}
+
+	token, err := utils.GetPaypackToken()
+	if err != nil {
+		return uuid.Nil, 0, "", errors.New("failed to get payment token")
+	}
+
+	err = utils.InitiatePayment(token, utils.PaymentPayload{
+		Amount: amount,
+		Number: phone,
+	})
+	if err != nil {
+		return uuid.Nil, 0, "", errors.New("payment failed: " + err.Error())
+	}
+
+	return newOrder.ID, amount, "Order has been placed", nil
 }
 
 // Adding product on the wish list

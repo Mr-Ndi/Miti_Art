@@ -63,3 +63,11 @@ func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func GetUserPhoneByID(db *gorm.DB, userID uuid.UUID) (string, error) {
+	var user models.User
+	if err := db.First(&user, "id = ?", userID).Error; err != nil {
+		return "", errors.New("user not found")
+	}
+	return user.Phone, nil
+}

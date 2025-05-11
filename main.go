@@ -16,7 +16,7 @@ func main() {
 	r := gin.Default()
 	r.SetTrustedProxies([]string{})
 	corsConfig := cors.Config{
-		AllowOrigins:     []string{"localhost:3000"},
+		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"POST", "GET"},
 		AllowHeaders:     []string{"content-Type", "Authorization"},
 		AllowCredentials: true,

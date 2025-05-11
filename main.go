@@ -7,6 +7,7 @@ import (
 	database "MITI_ART/configure"
 	"fmt"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,6 +15,14 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.SetTrustedProxies([]string{})
+	corsConfig := cors.Config{
+		AllowOrigins:     []string{"localhost:3000"},
+		AllowMethods:     []string{"POST", "GET"},
+		AllowHeaders:     []string{"content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60,
+	}
+	r.Use(cors.New(corsConfig))
 
 	// database stuffs
 	database.ConnectDB()

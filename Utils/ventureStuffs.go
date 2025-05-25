@@ -1,7 +1,7 @@
 package utils
 
 import (
-	models "MITI_ART/Models"
+	models "MITI_ART/src/Models"
 	"errors"
 	"fmt"
 	"io"

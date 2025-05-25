@@ -2,9 +2,7 @@ package main
 
 import (
 	database "MITI_ART/configure"
-	client "MITI_ART/src/Client/routes"
-	kibamba "MITI_ART/src/Kibamba/routes"
-	vendor "MITI_ART/src/Vendors/routes"
+	route "MITI_ART/src/routes"
 	"fmt"
 
 	"github.com/gin-contrib/cors"
@@ -24,13 +22,10 @@ func main() {
 	}
 	r.Use(cors.New(corsConfig))
 
-	// database stuffs
+	// Connect to the database
 	database.ConnectDB()
 
-	// Routes setup
-	kibamba.AdminRoutes(r, database.DB)
-	client.ClientRoutes(r, database.DB)
-	vendor.VendorsRoutes(r, database.DB)
+	route.AllRoutes(r, database.DB)
 
 	fmt.Println("Server is running on port 8080")
 	r.Run(":8080")

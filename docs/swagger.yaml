@@ -1,4 +1,243 @@
+definitions:
+  controller.CreateOrderRequest:
+    properties:
+      productID:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - productID
+    - quantity
+    type: object
+  controller.RegisterRequest:
+    properties:
+      clientEmail:
+        type: string
+      clientFirstName:
+        type: string
+      clientOtherName:
+        type: string
+      clientPassword:
+        type: string
+    required:
+    - clientEmail
+    - clientFirstName
+    - clientOtherName
+    - clientPassword
+    type: object
+  controller.SuccessMessage:
+    properties:
+      amount:
+        type: number
+      email:
+        type: string
+      message:
+        type: string
+      orderID:
+        type: string
+    type: object
+  controller.WishListRequest:
+    properties:
+      productID:
+        type: string
+    required:
+    - productID
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /clients/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new client with email, name, and password
+      parameters:
+      - description: Client registration input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.SuccessMessage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new client
+      tags:
+      - client
+  /furniture:
+    get:
+      description: Fetches all available furniture products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all furniture
+      tags:
+      - furniture
+  /furniture/{id}:
+    get:
+      description: Fetches details for a specific furniture item
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get furniture by ID
+      tags:
+      - furniture
+  /orders:
+    post:
+      consumes:
+      - application/json
+      description: Places a new order for a given product and quantity
+      parameters:
+      - description: Order request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.SuccessMessage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an order
+      tags:
+      - order
+  /orders/user/{userID}:
+    get:
+      description: Gets a list of a user's orders with optional status and date filters
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: Order status
+        in: query
+        name: status
+        type: string
+      - description: Start date (RFC3339 format)
+        in: query
+        name: from
+        type: string
+      - description: End date (RFC3339 format)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      summary: List user orders
+      tags:
+      - order
+  /wishlist:
+    post:
+      consumes:
+      - application/json
+      description: Adds a product to the authenticated user's wishlist
+      parameters:
+      - description: Wishlist request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.WishListRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.SuccessMessage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add to wishlist
+      tags:
+      - wishlist
 swagger: "2.0"

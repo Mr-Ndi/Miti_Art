@@ -10,26 +10,61 @@ import (
 	"gorm.io/gorm"
 )
 
-// RegisterHandle handles function
-func RegisterHandle(c *gin.Context, db *gorm.DB) {
-	// Request body
-	var req struct {
-		ClientFirstName string `json:"clientFirstName" binding:"required"`
-		ClientOtherName string `json:"clientOtherName" binding:"required"`
-		ClientEmail     string `json:"clientEmail" binding:"required,email"`
-		ClientPassword  string `json:"clientPassword" binding:"required"`
-	}
+// =============================
+// Request Structs
+// =============================
 
-	// Validate request body
+type RegisterRequest struct {
+	ClientFirstName string `json:"clientFirstName" binding:"required"`
+	ClientOtherName string `json:"clientOtherName" binding:"required"`
+	ClientEmail     string `json:"clientEmail" binding:"required,email"`
+	ClientPassword  string `json:"clientPassword" binding:"required"`
+}
+
+type CreateOrderRequest struct {
+	ProductID uuid.UUID `json:"productID" binding:"required"`
+	Quantity  int       `json:"quantity" binding:"required"`
+}
+
+type WishListRequest struct {
+	ProductID uuid.UUID `json:"productID" binding:"required"`
+}
+
+// =============================
+// Swagger Response Example (optional)
+// =============================
+
+type SuccessMessage struct {
+	Message string    `json:"message"`
+	Email   string    `json:"email,omitempty"`
+	OrderID uuid.UUID `json:"orderID,omitempty"`
+	Amount  float64   `json:"amount,omitempty"`
+}
+
+// =============================
+// Controller Functions
+// =============================
+
+// RegisterHandle godoc
+// @Summary Register a new client
+// @Description Registers a new client with email, name, and password
+// @Tags client
+// @Accept json
+// @Produce json
+// @Param body body RegisterRequest true "Client registration input"
+// @Success 201 {object} SuccessMessage
+// @Failure 400 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /clients/register [post]
+func RegisterHandle(c *gin.Context, db *gorm.DB) {
+	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
 
-	// Call service function
 	message, err := service.RegisterClient(db, req.ClientEmail, req.ClientFirstName, req.ClientOtherName, req.ClientPassword)
-
-	// Handle service response
 	if err != nil {
 		if err.Error() == "email already registered" {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -39,49 +74,74 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// Return success response
 	c.JSON(http.StatusCreated, gin.H{
 		"message": message,
 		"email":   req.ClientEmail,
 	})
 }
 
-// Using Furniture finder function in service
+// GetFurniture godoc
+// @Summary Get all furniture
+// @Description Fetches all available furniture products
+// @Tags furniture
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /furniture [get]
 func GetFurniture(c *gin.Context, db *gorm.DB) {
 	products, err := service.Products(db)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": products})
 }
 
-// Using single Furniture finder function in service
+// GetFurnitureDetails godoc
+// @Summary Get furniture by ID
+// @Description Fetches details for a specific furniture item
+// @Tags furniture
+// @Produce json
+// @Param id path string true "Product ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /furniture/{id} [get]
 func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 	idParam := c.Param("id")
-
 	id, err := uuid.Parse(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
 	}
-	products, err := service.Product(db, id)
+
+	product, err := service.Product(db, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": products})
+
+	c.JSON(http.StatusOK, gin.H{"data": product})
 }
 
-// Using id to place order while logged in
+// CreateOrder godoc
+// @Summary Create an order
+// @Description Places a new order for a given product and quantity
+// @Tags order
+// @Accept json
+// @Produce json
+// @Param body body CreateOrderRequest true "Order request"
+// @Success 201 {object} SuccessMessage
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /orders [post]
 func CreateOrder(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		ProductID uuid.UUID `gorm:"not null"`
-		Quantity  int       `gorm:"not null"`
-	}
+	var req CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
 
-	// 🔐 Get user ID
 	userIDAny, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -89,14 +149,12 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 	}
 	userID := userIDAny.(uuid.UUID)
 
-	// 🧠 Call service to handle order + payment
 	orderID, amount, message, err := service.HandleOrder(db, req.ProductID, req.Quantity, userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// ✅ Respond
 	c.JSON(http.StatusCreated, gin.H{
 		"message": message,
 		"orderID": orderID,
@@ -104,15 +162,24 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 	})
 }
 
-// Using id to add element on wish list
+// AppendWishList godoc
+// @Summary Add to wishlist
+// @Description Adds a product to the authenticated user's wishlist
+// @Tags wishlist
+// @Accept json
+// @Produce json
+// @Param body body WishListRequest true "Wishlist request"
+// @Success 201 {object} SuccessMessage
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /wishlist [post]
 func AppendWishList(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		ProductID uuid.UUID `gorm:"not null"`
-	}
+	var req WishListRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request:" + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
+
 	userIDAny, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -132,24 +199,32 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 	})
 }
 
+// ListUserOrders godoc
+// @Summary List user orders
+// @Description Gets a list of a user's orders with optional status and date filters
+// @Tags order
+// @Produce json
+// @Param userID path string true "User ID"
+// @Param status query string false "Order status"
+// @Param from query string false "Start date (RFC3339 format)"
+// @Param to query string false "End date (RFC3339 format)"
+// @Success 200 {array} map[string]interface{}
+// @Router /orders/user/{userID} [get]
 func ListUserOrders(c *gin.Context, db *gorm.DB) {
 	userID := c.Param("userID")
-
-	// Parse query parameters
 	status := c.Query("status")
 	start := c.Query("from")
 	end := c.Query("to")
 
-	// Convert to UUID/time
 	uuid := uuid.MustParse(userID)
 	startTime, _ := time.Parse(time.RFC3339, start)
 	endTime, _ := time.Parse(time.RFC3339, end)
 
-	// Call service layer for getting the orders
 	orders, err := service.GetUserOrders(db, uuid, &status, &startTime, &endTime)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, orders)
+	c.JSON(http.StatusOK, orders)
 }

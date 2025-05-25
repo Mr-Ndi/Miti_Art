@@ -43,7 +43,7 @@ func main() {
 	fmt.Println("Connected to PostgreSQL and migrated successfully!")
 	fmt.Println("--------------------------------------------------------------")
 	fmt.Println("Server is running on: http://localhost:8080")
-	fmt.Printf("Swagger docs available at: %s:8080/swagger/index.html\n", Server)
+	fmt.Printf("Swagger docs available at: %s:/swagger/index.html\n", Server)
 
 	r.Run(":8080")
 }

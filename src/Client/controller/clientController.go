@@ -22,7 +22,7 @@ import (
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /clients/register [post]
+// @Router /user/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
 	var req dto.ClientRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

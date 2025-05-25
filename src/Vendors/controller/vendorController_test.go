@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"MITI_ART/Vendors/controller"
+	"MITI_ART/src/Vendors/controller"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

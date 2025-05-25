@@ -1,10 +1,10 @@
 package main
 
 import (
-	client "MITI_ART/Client/routes"
-	kibamba "MITI_ART/Kibamba/routes"
-	vendor "MITI_ART/Vendors/routes"
 	database "MITI_ART/configure"
+	client "MITI_ART/src/Client/routes"
+	kibamba "MITI_ART/src/Kibamba/routes"
+	vendor "MITI_ART/src/Vendors/routes"
 	"fmt"
 
 	"github.com/gin-contrib/cors"

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	controllers "MITI_ART/Kibamba/controller"
-	middlewares "MITI_ART/middleware"
+	controllers "MITI_ART/src/Kibamba/controller"
+	middlewares "MITI_ART/src/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

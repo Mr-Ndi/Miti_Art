@@ -2,7 +2,7 @@ package controller
 
 import (
 	utils "MITI_ART/Utils"
-	"MITI_ART/Vendors/service"
+	"MITI_ART/src/Vendors/service"
 	"fmt"
 	"log"
 	"net/http"

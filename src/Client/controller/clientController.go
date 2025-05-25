@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"MITI_ART/Client/service"
+	"MITI_ART/src/Client/service"
 	"net/http"
 	"time"
 

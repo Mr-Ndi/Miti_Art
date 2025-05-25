@@ -1,8 +1,8 @@
 package service
 
 import (
-	models "MITI_ART/Models"
 	Utils "MITI_ART/Utils"
+	models "MITI_ART/src/Models"
 	"errors"
 	"fmt"
 	"strings"

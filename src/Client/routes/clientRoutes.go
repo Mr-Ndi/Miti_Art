@@ -1,8 +1,8 @@
 package routes
 
 import (
-	controller "MITI_ART/Client/controller"
-	middleware "MITI_ART/middleware"
+	controller "MITI_ART/src/Client/controller"
+	middleware "MITI_ART/src/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

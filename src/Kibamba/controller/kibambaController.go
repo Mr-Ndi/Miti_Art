@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"MITI_ART/Kibamba/services"
 	utils "MITI_ART/Utils"
+	"MITI_ART/src/Kibamba/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

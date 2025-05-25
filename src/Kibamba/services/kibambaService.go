@@ -1,8 +1,8 @@
 package services
 
 import (
-	models "MITI_ART/Models"
 	utils "MITI_ART/Utils"
+	models "MITI_ART/src/Models"
 	"bytes"
 	"fmt"
 	"log"

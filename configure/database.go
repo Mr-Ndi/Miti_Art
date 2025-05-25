@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	models "MITI_ART/Models"
+	models "MITI_ART/src/Models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

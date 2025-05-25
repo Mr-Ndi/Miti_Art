@@ -175,6 +175,7 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 // @Param from query string false "Start date (RFC3339 format)"
 // @Param to query string false "End date (RFC3339 format)"
 // @Success 200 {array} map[string]interface{}
+// @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /user/orders/user/{userID} [get]
@@ -186,15 +187,34 @@ func ListUserOrders(c *gin.Context, db *gorm.DB) {
 	}
 
 	userID := c.Param("userID")
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
 	status := c.Query("status")
-	start := c.Query("from")
-	end := c.Query("to")
+	var startTime, endTime *time.Time
 
-	uuid := uuid.MustParse(userID)
-	startTime, _ := time.Parse(time.RFC3339, start)
-	endTime, _ := time.Parse(time.RFC3339, end)
+	if start := c.Query("from"); start != "" {
+		t, err := time.Parse(time.RFC3339, start)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'from' date"})
+			return
+		}
+		startTime = &t
+	}
 
-	orders, err := service.GetUserOrders(db, uuid, &status, &startTime, &endTime)
+	if end := c.Query("to"); end != "" {
+		t, err := time.Parse(time.RFC3339, end)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'to' date"})
+			return
+		}
+		endTime = &t
+	}
+
+	orders, err := service.GetUserOrders(db, userUUID, &status, startTime, endTime)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

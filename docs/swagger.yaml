@@ -1,3 +1,30 @@
+definitions:
+  dto.EditProductRequest:
+    properties:
+      category:
+        type: string
+      image_url:
+        type: string
+      material:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  dto.VendorRegisterRequest:
+    properties:
+      ShopName:
+        type: string
+      vendorPassword:
+        type: string
+      vendorTin:
+        type: integer
+    required:
+    - ShopName
+    - vendorPassword
+    - vendorTin
+    type: object
 info:
   contact: {}
 paths:
@@ -429,6 +456,267 @@ paths:
       summary: List user orders
       tags:
       - client
+  /vendor/orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all orders for a specific vendor
+      parameters:
+      - description: Vendor ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get orders by vendor
+      tags:
+      - Vendor
+  /vendor/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a product by its ID (only vendor who owns it)
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a product
+      tags:
+      - Vendor
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all products associated with a vendor
+      parameters:
+      - description: Vendor ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get products by vendor
+      tags:
+      - Vendor
+    put:
+      consumes:
+      - application/json
+      description: Updates product fields for an existing product
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product updates
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Edit a product
+      tags:
+      - Vendor
+  /vendor/register:
+    post:
+      consumes:
+      - application/json
+      description: Vendor registration with token validation and details
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vendor registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VendorRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new vendor
+      tags:
+      - Vendor
+  /vendor/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a product image and metadata
+      parameters:
+      - description: Product image
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Product name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Category
+        in: formData
+        name: category
+        required: true
+        type: string
+      - description: Material
+        in: formData
+        name: material
+        required: true
+        type: string
+      - description: Price
+        in: formData
+        name: price
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload a product
+      tags:
+      - Vendor
   /wishlist:
     post:
       consumes:

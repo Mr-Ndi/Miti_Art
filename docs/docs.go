@@ -15,6 +15,293 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/clients": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "View all clients",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Edit client info",
+                "parameters": [
+                    {
+                        "description": "Client update input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Delete a client",
+                "parameters": [
+                    {
+                        "description": "Client ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/orders": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "View all orders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/products": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "View all products",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/vendors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "View all vendors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Edit vendor info",
+                "parameters": [
+                    {
+                        "description": "Vendor update input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Delete a vendor",
+                "parameters": [
+                    {
+                        "description": "Vendor ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/clients/register": {
             "post": {
                 "description": "Registers a new client with email, name, and password",
@@ -35,7 +322,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.RegisterRequest"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 ],
@@ -43,7 +331,8 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/controller.SuccessMessage"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -83,7 +372,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "furniture"
+                    "client"
                 ],
                 "summary": "Get all furniture",
                 "responses": {
@@ -113,7 +402,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "furniture"
+                    "client"
                 ],
                 "summary": "Get furniture by ID",
                 "parameters": [
@@ -154,6 +443,122 @@ const docTemplate = `{
                 }
             }
         },
+        "/invite": {
+            "post": {
+                "description": "Sends invitation token to a vendor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Send vendor invitation",
+                "parameters": [
+                    {
+                        "description": "Invitation input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Authenticates user and returns a token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "Login input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/orders": {
             "post": {
                 "description": "Places a new order for a given product and quantity",
@@ -164,7 +569,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "order"
+                    "client"
                 ],
                 "summary": "Create an order",
                 "parameters": [
@@ -174,7 +579,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.CreateOrderRequest"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 ],
@@ -182,7 +588,8 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/controller.SuccessMessage"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -213,7 +620,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "order"
+                    "client"
                 ],
                 "summary": "List user orders",
                 "parameters": [
@@ -267,7 +674,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "wishlist"
+                    "client"
                 ],
                 "summary": "Add to wishlist",
                 "parameters": [
@@ -277,7 +684,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.WishListRequest"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 ],
@@ -285,7 +693,8 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/controller.SuccessMessage"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -306,74 +715,6 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "controller.CreateOrderRequest": {
-            "type": "object",
-            "required": [
-                "productID",
-                "quantity"
-            ],
-            "properties": {
-                "productID": {
-                    "type": "string"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
-        "controller.RegisterRequest": {
-            "type": "object",
-            "required": [
-                "clientEmail",
-                "clientFirstName",
-                "clientOtherName",
-                "clientPassword"
-            ],
-            "properties": {
-                "clientEmail": {
-                    "type": "string"
-                },
-                "clientFirstName": {
-                    "type": "string"
-                },
-                "clientOtherName": {
-                    "type": "string"
-                },
-                "clientPassword": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.SuccessMessage": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "orderID": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.WishListRequest": {
-            "type": "object",
-            "required": [
-                "productID"
-            ],
-            "properties": {
-                "productID": {
-                    "type": "string"
                 }
             }
         }

@@ -1,51 +1,194 @@
-definitions:
-  controller.CreateOrderRequest:
-    properties:
-      productID:
-        type: string
-      quantity:
-        type: integer
-    required:
-    - productID
-    - quantity
-    type: object
-  controller.RegisterRequest:
-    properties:
-      clientEmail:
-        type: string
-      clientFirstName:
-        type: string
-      clientOtherName:
-        type: string
-      clientPassword:
-        type: string
-    required:
-    - clientEmail
-    - clientFirstName
-    - clientOtherName
-    - clientPassword
-    type: object
-  controller.SuccessMessage:
-    properties:
-      amount:
-        type: number
-      email:
-        type: string
-      message:
-        type: string
-      orderID:
-        type: string
-    type: object
-  controller.WishListRequest:
-    properties:
-      productID:
-        type: string
-    required:
-    - productID
-    type: object
 info:
   contact: {}
 paths:
+  /admin/clients:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Client ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a client
+      tags:
+      - admin
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View all clients
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Client update input
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Edit client info
+      tags:
+      - admin
+  /admin/orders:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View all orders
+      tags:
+      - admin
+  /admin/products:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View all products
+      tags:
+      - admin
+  /admin/vendors:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a vendor
+      tags:
+      - admin
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: View all vendors
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor update input
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Edit vendor info
+      tags:
+      - admin
   /clients/register:
     post:
       consumes:
@@ -57,14 +200,16 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.RegisterRequest'
+          additionalProperties: true
+          type: object
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/controller.SuccessMessage'
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -105,7 +250,7 @@ paths:
             type: object
       summary: Get all furniture
       tags:
-      - furniture
+      - client
   /furniture/{id}:
     get:
       description: Fetches details for a specific furniture item
@@ -137,7 +282,83 @@ paths:
             type: object
       summary: Get furniture by ID
       tags:
-      - furniture
+      - client
+  /invite:
+    post:
+      consumes:
+      - application/json
+      description: Sends invitation token to a vendor
+      parameters:
+      - description: Invitation input
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send vendor invitation
+      tags:
+      - admin
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user and returns a token
+      parameters:
+      - description: Login input
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - auth
   /orders:
     post:
       consumes:
@@ -149,14 +370,16 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.CreateOrderRequest'
+          additionalProperties: true
+          type: object
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/controller.SuccessMessage'
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -171,7 +394,7 @@ paths:
             type: object
       summary: Create an order
       tags:
-      - order
+      - client
   /orders/user/{userID}:
     get:
       description: Gets a list of a user's orders with optional status and date filters
@@ -205,7 +428,7 @@ paths:
             type: array
       summary: List user orders
       tags:
-      - order
+      - client
   /wishlist:
     post:
       consumes:
@@ -217,14 +440,16 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.WishListRequest'
+          additionalProperties: true
+          type: object
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/controller.SuccessMessage'
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -239,5 +464,5 @@ paths:
             type: object
       summary: Add to wishlist
       tags:
-      - wishlist
+      - client
 swagger: "2.0"

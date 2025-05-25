@@ -490,6 +490,12 @@ paths:
               additionalProperties: true
               type: object
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "401":
           description: Unauthorized
           schema:

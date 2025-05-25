@@ -667,6 +667,15 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {

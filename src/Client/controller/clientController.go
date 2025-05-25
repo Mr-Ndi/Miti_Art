@@ -11,37 +11,6 @@ import (
 )
 
 // =============================
-// Request Structs
-// =============================
-
-type RegisterRequest struct {
-	ClientFirstName string `json:"clientFirstName" binding:"required"`
-	ClientOtherName string `json:"clientOtherName" binding:"required"`
-	ClientEmail     string `json:"clientEmail" binding:"required,email"`
-	ClientPassword  string `json:"clientPassword" binding:"required"`
-}
-
-type CreateOrderRequest struct {
-	ProductID uuid.UUID `json:"productID" binding:"required"`
-	Quantity  int       `json:"quantity" binding:"required"`
-}
-
-type WishListRequest struct {
-	ProductID uuid.UUID `json:"productID" binding:"required"`
-}
-
-// =============================
-// Swagger Response Example (optional)
-// =============================
-
-type SuccessMessage struct {
-	Message string    `json:"message"`
-	Email   string    `json:"email,omitempty"`
-	OrderID uuid.UUID `json:"orderID,omitempty"`
-	Amount  float64   `json:"amount,omitempty"`
-}
-
-// =============================
 // Controller Functions
 // =============================
 
@@ -51,14 +20,19 @@ type SuccessMessage struct {
 // @Tags client
 // @Accept json
 // @Produce json
-// @Param body body RegisterRequest true "Client registration input"
-// @Success 201 {object} SuccessMessage
+// @Param body body map[string]interface{} true "Client registration input"
+// @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /clients/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
-	var req RegisterRequest
+	var req struct {
+		ClientFirstName string `json:"clientFirstName" binding:"required"`
+		ClientOtherName string `json:"clientOtherName" binding:"required"`
+		ClientEmail     string `json:"clientEmail" binding:"required,email"`
+		ClientPassword  string `json:"clientPassword" binding:"required"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -83,7 +57,7 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 // GetFurniture godoc
 // @Summary Get all furniture
 // @Description Fetches all available furniture products
-// @Tags furniture
+// @Tags client
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 500 {object} map[string]string
@@ -100,7 +74,7 @@ func GetFurniture(c *gin.Context, db *gorm.DB) {
 // GetFurnitureDetails godoc
 // @Summary Get furniture by ID
 // @Description Fetches details for a specific furniture item
-// @Tags furniture
+// @Tags client
 // @Produce json
 // @Param id path string true "Product ID (UUID)"
 // @Success 200 {object} map[string]interface{}
@@ -127,16 +101,19 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 // CreateOrder godoc
 // @Summary Create an order
 // @Description Places a new order for a given product and quantity
-// @Tags order
+// @Tags client
 // @Accept json
 // @Produce json
-// @Param body body CreateOrderRequest true "Order request"
-// @Success 201 {object} SuccessMessage
+// @Param body body map[string]interface{} true "Order request"
+// @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Router /orders [post]
 func CreateOrder(c *gin.Context, db *gorm.DB) {
-	var req CreateOrderRequest
+	var req struct {
+		ProductID uuid.UUID `json:"productID" binding:"required"`
+		Quantity  int       `json:"quantity" binding:"required"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -165,16 +142,18 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 // AppendWishList godoc
 // @Summary Add to wishlist
 // @Description Adds a product to the authenticated user's wishlist
-// @Tags wishlist
+// @Tags client
 // @Accept json
 // @Produce json
-// @Param body body WishListRequest true "Wishlist request"
-// @Success 201 {object} SuccessMessage
+// @Param body body map[string]interface{} true "Wishlist request"
+// @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Router /wishlist [post]
 func AppendWishList(c *gin.Context, db *gorm.DB) {
-	var req WishListRequest
+	var req struct {
+		ProductID uuid.UUID `json:"productID" binding:"required"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -202,7 +181,7 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 // ListUserOrders godoc
 // @Summary List user orders
 // @Description Gets a list of a user's orders with optional status and date filters
-// @Tags order
+// @Tags client
 // @Produce json
 // @Param userID path string true "User ID"
 // @Param status query string false "Order status"

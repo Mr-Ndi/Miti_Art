@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	database "MITI_ART/configure"
 	route "MITI_ART/src/routes"
@@ -37,6 +38,12 @@ func main() {
 	// Swagger docs route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	fmt.Println("Server is running on port 8080")
+	var Server = os.Getenv("Server")
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("Connected to PostgreSQL and migrated successfully!")
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("Server is running on: http://localhost:8080")
+	fmt.Printf("Swagger docs available at: %s:8080/swagger/index.html\n", Server)
+
 	r.Run(":8080")
 }

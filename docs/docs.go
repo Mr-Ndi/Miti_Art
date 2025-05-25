@@ -322,8 +322,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.ClientRegisterRequest"
                         }
                     }
                 ],
@@ -561,7 +560,7 @@ const docTemplate = `{
         },
         "/orders": {
             "post": {
-                "description": "Places a new order for a given product and quantity",
+                "description": "Places a new order for a given product and quantity (authentication required)",
                 "consumes": [
                     "application/json"
                 ],
@@ -579,8 +578,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.CreateOrderRequest"
                         }
                     }
                 ],
@@ -615,7 +613,7 @@ const docTemplate = `{
         },
         "/orders/user/{userID}": {
             "get": {
-                "description": "Gets a list of a user's orders with optional status and date filters",
+                "description": "Gets a list of a user's orders with optional status and date filters (authentication required)",
                 "produces": [
                     "application/json"
                 ],
@@ -658,6 +656,24 @@ const docTemplate = `{
                             "items": {
                                 "type": "object",
                                 "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -1056,7 +1072,7 @@ const docTemplate = `{
         },
         "/wishlist": {
             "post": {
-                "description": "Adds a product to the authenticated user's wishlist",
+                "description": "Adds a product to the authenticated user's wishlist (authentication required)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1074,8 +1090,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.WishListRequest"
                         }
                     }
                 ],
@@ -1110,6 +1125,44 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.ClientRegisterRequest": {
+            "type": "object",
+            "required": [
+                "clientEmail",
+                "clientFirstName",
+                "clientOtherName",
+                "clientPassword"
+            ],
+            "properties": {
+                "clientEmail": {
+                    "type": "string"
+                },
+                "clientFirstName": {
+                    "type": "string"
+                },
+                "clientOtherName": {
+                    "type": "string"
+                },
+                "clientPassword": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateOrderRequest": {
+            "type": "object",
+            "required": [
+                "productID",
+                "quantity"
+            ],
+            "properties": {
+                "productID": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.EditProductRequest": {
             "type": "object",
             "properties": {
@@ -1146,6 +1199,17 @@ const docTemplate = `{
                 },
                 "vendorTin": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.WishListRequest": {
+            "type": "object",
+            "required": [
+                "productID"
+            ],
+            "properties": {
+                "productID": {
+                    "type": "string"
                 }
             }
         }

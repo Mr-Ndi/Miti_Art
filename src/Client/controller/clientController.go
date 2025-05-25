@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"MITI_ART/src/Client/dto"
 	"MITI_ART/src/Client/service"
 	"net/http"
 	"time"
@@ -10,29 +11,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// =============================
-// Controller Functions
-// =============================
-
 // RegisterHandle godoc
 // @Summary Register a new client
 // @Description Registers a new client with email, name, and password
 // @Tags client
 // @Accept json
 // @Produce json
-// @Param body body map[string]interface{} true "Client registration input"
+// @Param body body dto.ClientRegisterRequest true "Client registration input"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /clients/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		ClientFirstName string `json:"clientFirstName" binding:"required"`
-		ClientOtherName string `json:"clientOtherName" binding:"required"`
-		ClientEmail     string `json:"clientEmail" binding:"required,email"`
-		ClientPassword  string `json:"clientPassword" binding:"required"`
-	}
+	var req dto.ClientRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -100,20 +92,17 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 
 // CreateOrder godoc
 // @Summary Create an order
-// @Description Places a new order for a given product and quantity
+// @Description Places a new order for a given product and quantity (authentication required)
 // @Tags client
 // @Accept json
 // @Produce json
-// @Param body body map[string]interface{} true "Order request"
+// @Param body body dto.CreateOrderRequest true "Order request"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Router /orders [post]
 func CreateOrder(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		ProductID uuid.UUID `json:"productID" binding:"required"`
-		Quantity  int       `json:"quantity" binding:"required"`
-	}
+	var req dto.OrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -141,19 +130,17 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 
 // AppendWishList godoc
 // @Summary Add to wishlist
-// @Description Adds a product to the authenticated user's wishlist
+// @Description Adds a product to the authenticated user's wishlist (authentication required)
 // @Tags client
 // @Accept json
 // @Produce json
-// @Param body body map[string]interface{} true "Wishlist request"
+// @Param body body dto.WishListRequest true "Wishlist request"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Router /wishlist [post]
 func AppendWishList(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		ProductID uuid.UUID `json:"productID" binding:"required"`
-	}
+	var req dto.WishlistRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -180,7 +167,7 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 
 // ListUserOrders godoc
 // @Summary List user orders
-// @Description Gets a list of a user's orders with optional status and date filters
+// @Description Gets a list of a user's orders with optional status and date filters (authentication required)
 // @Tags client
 // @Produce json
 // @Param userID path string true "User ID"
@@ -188,8 +175,16 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 // @Param from query string false "Start date (RFC3339 format)"
 // @Param to query string false "End date (RFC3339 format)"
 // @Success 200 {array} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /orders/user/{userID} [get]
 func ListUserOrders(c *gin.Context, db *gorm.DB) {
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
 	userID := c.Param("userID")
 	status := c.Query("status")
 	start := c.Query("from")

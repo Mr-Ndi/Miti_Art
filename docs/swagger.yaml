@@ -1,4 +1,30 @@
 definitions:
+  dto.ClientRegisterRequest:
+    properties:
+      clientEmail:
+        type: string
+      clientFirstName:
+        type: string
+      clientOtherName:
+        type: string
+      clientPassword:
+        type: string
+    required:
+    - clientEmail
+    - clientFirstName
+    - clientOtherName
+    - clientPassword
+    type: object
+  dto.CreateOrderRequest:
+    properties:
+      productID:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - productID
+    - quantity
+    type: object
   dto.EditProductRequest:
     properties:
       category:
@@ -24,6 +50,13 @@ definitions:
     - ShopName
     - vendorPassword
     - vendorTin
+    type: object
+  dto.WishListRequest:
+    properties:
+      productID:
+        type: string
+    required:
+    - productID
     type: object
 info:
   contact: {}
@@ -227,8 +260,7 @@ paths:
         name: body
         required: true
         schema:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/dto.ClientRegisterRequest'
       produces:
       - application/json
       responses:
@@ -390,15 +422,15 @@ paths:
     post:
       consumes:
       - application/json
-      description: Places a new order for a given product and quantity
+      description: Places a new order for a given product and quantity (authentication
+        required)
       parameters:
       - description: Order request
         in: body
         name: body
         required: true
         schema:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/dto.CreateOrderRequest'
       produces:
       - application/json
       responses:
@@ -425,6 +457,7 @@ paths:
   /orders/user/{userID}:
     get:
       description: Gets a list of a user's orders with optional status and date filters
+        (authentication required)
       parameters:
       - description: User ID
         in: path
@@ -453,6 +486,18 @@ paths:
               additionalProperties: true
               type: object
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: List user orders
       tags:
       - client
@@ -721,15 +766,15 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds a product to the authenticated user's wishlist
+      description: Adds a product to the authenticated user's wishlist (authentication
+        required)
       parameters:
       - description: Wishlist request
         in: body
         name: body
         required: true
         schema:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/dto.WishListRequest'
       produces:
       - application/json
       responses:

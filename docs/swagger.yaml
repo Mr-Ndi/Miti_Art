@@ -61,195 +61,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /admin/clients:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: Client ID
-        in: body
-        name: body
-        required: true
-        schema:
-          additionalProperties:
-            type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a client
-      tags:
-      - admin
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: View all clients
-      tags:
-      - admin
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Client update input
-        in: body
-        name: body
-        required: true
-        schema:
-          additionalProperties: true
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Edit client info
-      tags:
-      - admin
-  /admin/orders:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: View all orders
-      tags:
-      - admin
-  /admin/products:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: View all products
-      tags:
-      - admin
-  /admin/vendors:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: Vendor ID
-        in: body
-        name: body
-        required: true
-        schema:
-          additionalProperties:
-            type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a vendor
-      tags:
-      - admin
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: View all vendors
-      tags:
-      - admin
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Vendor update input
-        in: body
-        name: body
-        required: true
-        schema:
-          additionalProperties: true
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Edit vendor info
-      tags:
-      - admin
-  /clients/register:
+  //user/register:
     post:
       consumes:
       - application/json
@@ -290,42 +102,26 @@ paths:
       summary: Register a new client
       tags:
       - client
-  /furniture:
-    get:
-      description: Fetches all available furniture products
+  /admin/edit-client:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Client update input
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
-            type: object
-      summary: Get all furniture
-      tags:
-      - client
-  /furniture/{id}:
-    get:
-      description: Fetches details for a specific furniture item
-      parameters:
-      - description: Product ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
             type: object
         "400":
           description: Bad Request
@@ -333,15 +129,171 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "500":
-          description: Internal Server Error
+      summary: Edit client info
+      tags:
+      - admin
+  /admin/edit-vendor:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor update input
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Get furniture by ID
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Edit vendor info
       tags:
-      - client
+      - admin
+  /admin/eliminate-client:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Client ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a client
+      tags:
+      - admin
+  /admin/eliminate-vendor:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a vendor
+      tags:
+      - admin
+  /admin/view-clients:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View all clients
+      tags:
+      - admin
+  /admin/view-orders:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View all orders
+      tags:
+      - admin
+  /admin/view-products:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: View all products
+      tags:
+      - admin
+  /admin/view-vendors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: View all vendors
+      tags:
+      - admin
   /invite:
     post:
       consumes:
@@ -380,7 +332,59 @@ paths:
       summary: Send vendor invitation
       tags:
       - admin
-  /login:
+  /user/furniture:
+    get:
+      description: Fetches all available furniture products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all furniture
+      tags:
+      - client
+  /user/furniture/{id}:
+    get:
+      description: Fetches details for a specific furniture item
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get furniture by ID
+      tags:
+      - client
+  /user/login:
     post:
       consumes:
       - application/json
@@ -418,7 +422,7 @@ paths:
       summary: Login user
       tags:
       - auth
-  /orders:
+  /user/orders:
     post:
       consumes:
       - application/json
@@ -454,7 +458,7 @@ paths:
       summary: Create an order
       tags:
       - client
-  /orders/user/{userID}:
+  /user/orders/user/{userID}:
     get:
       description: Gets a list of a user's orders with optional status and date filters
         (authentication required)
@@ -501,59 +505,26 @@ paths:
       summary: List user orders
       tags:
       - client
-  /vendor/orders/{id}:
-    get:
+  /user/wishlist:
+    post:
       consumes:
       - application/json
-      description: Retrieves all orders for a specific vendor
+      description: Adds a product to the authenticated user's wishlist (authentication
+        required)
       parameters:
-      - description: Vendor ID (UUID)
-        in: path
-        name: id
+      - description: Wishlist request
+        in: body
+        name: body
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/dto.WishListRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get orders by vendor
-      tags:
-      - Vendor
-  /vendor/products/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a product by its ID (only vendor who owns it)
-      parameters:
-      - description: Product ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
             type: object
         "400":
           description: Bad Request
@@ -567,49 +538,11 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a product
+      summary: Add to wishlist
       tags:
-      - Vendor
-    get:
-      consumes:
-      - application/json
-      description: Retrieves all products associated with a vendor
-      parameters:
-      - description: Vendor ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get products by vendor
-      tags:
-      - Vendor
-    put:
+      - client
+  /vendor/edit-product/{id}:
+    post:
       consumes:
       - application/json
       description: Updates product fields for an existing product
@@ -640,12 +573,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "403":
           description: Forbidden
           schema:
@@ -655,17 +582,44 @@ paths:
       summary: Edit a product
       tags:
       - Vendor
+  /vendor/my-product/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves a product based on its ID
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a single product by ID
+      tags:
+      - Vendor
   /vendor/register:
     post:
       consumes:
       - application/json
       description: Vendor registration with token validation and details
       parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: Vendor registration data
         in: body
         name: request
@@ -687,12 +641,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "409":
           description: Conflict
           schema:
@@ -700,6 +648,67 @@ paths:
               type: string
             type: object
       summary: Register a new vendor
+      tags:
+      - Vendor
+  /vendor/remove-product/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Deletes a product by its ID (only vendor who owns it)
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a product
+      tags:
+      - Vendor
+  /vendor/required-product:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all orders associated with the vendor's products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get orders for a vendor
       tags:
       - Vendor
   /vendor/upload:
@@ -739,7 +748,8 @@ paths:
         "201":
           description: Created
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
         "400":
           description: Bad Request
@@ -762,40 +772,4 @@ paths:
       summary: Upload a product
       tags:
       - Vendor
-  /wishlist:
-    post:
-      consumes:
-      - application/json
-      description: Adds a product to the authenticated user's wishlist (authentication
-        required)
-      parameters:
-      - description: Wishlist request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.WishListRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Add to wishlist
-      tags:
-      - client
 swagger: "2.0"

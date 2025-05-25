@@ -22,7 +22,7 @@ import (
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /user/register [post]
+// @Router //user/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
 	var req dto.ClientRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -53,7 +53,7 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 500 {object} map[string]string
-// @Router user/furniture [get]
+// @Router /user/furniture [get]
 func GetFurniture(c *gin.Context, db *gorm.DB) {
 	products, err := service.Products(db)
 	if err != nil {
@@ -72,7 +72,7 @@ func GetFurniture(c *gin.Context, db *gorm.DB) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router user/furniture/{id} [get]
+// @Router /user/furniture/{id} [get]
 func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
@@ -100,7 +100,7 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
-// @Router user/orders [post]
+// @Router /user/orders [post]
 func CreateOrder(c *gin.Context, db *gorm.DB) {
 	var req dto.OrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -138,7 +138,7 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
-// @Router user/wishlist [post]
+// @Router /user/wishlist [post]
 func AppendWishList(c *gin.Context, db *gorm.DB) {
 	var req dto.WishlistRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -177,7 +177,7 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 // @Success 200 {array} map[string]interface{}
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router user/orders/user/{userID} [get]
+// @Router /user/orders/user/{userID} [get]
 func ListUserOrders(c *gin.Context, db *gorm.DB) {
 	_, exists := c.Get("userID")
 	if !exists {

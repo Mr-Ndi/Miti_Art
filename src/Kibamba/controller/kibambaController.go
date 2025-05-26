@@ -65,17 +65,9 @@ func LoginHandler(c *gin.Context, db *gorm.DB) {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Security BearerAuth
-// @Router /invite [post]
+// @Router /admin/invite [post]
 func InvitationHandler(c *gin.Context) {
 	var req dto.InvitationInput
-
-	userEmail, exist := c.Get("userEmail")
-	_ = userEmail
-	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Access"})
-		return
-	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data!"})
@@ -94,12 +86,19 @@ func InvitationHandler(c *gin.Context) {
 		return
 	}
 	result := utils.Invite(req.VendorEmail, req.VendorFirstName, req.VendorOtherName, token)
-
-	c.JSON(http.StatusOK, gin.H{
-		"status":  result,
-		"message": "Invitation sent successfully",
-		"sent_to": req.VendorEmail,
-	})
+	if result {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Invitation sent successfully",
+			"status":  true,
+			"sent_to": req.VendorEmail,
+		})
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to send invitation email",
+			"status":  false,
+			"sent_to": req.VendorEmail,
+		})
+	}
 }
 
 // ViewClients godoc
@@ -108,6 +107,7 @@ func InvitationHandler(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 403 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/view-clients [get]
 func ViewClients(c *gin.Context, db *gorm.DB) {
 	userEmail, exists := c.Get("user_email")

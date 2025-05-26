@@ -260,6 +260,40 @@ paths:
       summary: Delete a vendor
       tags:
       - admin
+  /admin/invite:
+    post:
+      consumes:
+      - application/json
+      description: Sends invitation token to a vendor
+      parameters:
+      - description: Invitation input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InvitationInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InviteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Send vendor invitation
+      tags:
+      - admin
   /admin/view-clients:
     get:
       produces:
@@ -336,42 +370,6 @@ paths:
       security:
       - BearerAuth: []
       summary: View all vendors
-      tags:
-      - admin
-  /invite:
-    post:
-      consumes:
-      - application/json
-      description: Sends invitation token to a vendor
-      parameters:
-      - description: Invitation input
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.InvitationInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.InviteResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Send vendor invitation
       tags:
       - admin
   /user/furniture:

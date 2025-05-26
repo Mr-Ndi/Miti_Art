@@ -766,8 +766,13 @@ const docTemplate = `{
             }
         },
         "/vendor/edit-product/{id}": {
-            "post": {
-                "description": "Updates product fields for an existing product",
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allows vendor to edit their product details",
                 "consumes": [
                     "application/json"
                 ],
@@ -777,7 +782,7 @@ const docTemplate = `{
                 "tags": [
                     "Vendor"
                 ],
-                "summary": "Edit a product",
+                "summary": "Edit product details",
                 "parameters": [
                     {
                         "type": "string",
@@ -787,7 +792,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Product updates",
+                        "description": "Product update fields",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -828,8 +833,13 @@ const docTemplate = `{
             }
         },
         "/vendor/my-product/{id}": {
-            "post": {
-                "description": "Retrieves a product based on its ID",
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a product by ID for the vendor",
                 "consumes": [
                     "application/json"
                 ],
@@ -852,7 +862,9 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -877,7 +889,7 @@ const docTemplate = `{
         },
         "/vendor/register": {
             "post": {
-                "description": "Vendor registration with token validation and details",
+                "description": "Vendor registration using token and additional details",
                 "consumes": [
                     "application/json"
                 ],
@@ -889,6 +901,13 @@ const docTemplate = `{
                 ],
                 "summary": "Register a new vendor",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Vendor registration data",
                         "name": "request",
@@ -918,6 +937,15 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "409": {
                         "description": "Conflict",
                         "schema": {
@@ -931,8 +959,13 @@ const docTemplate = `{
             }
         },
         "/vendor/remove-product/{id}": {
-            "post": {
-                "description": "Deletes a product by its ID (only vendor who owns it)",
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a vendor's product by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -985,7 +1018,12 @@ const docTemplate = `{
         },
         "/vendor/required-product": {
             "get": {
-                "description": "Retrieves all orders associated with the vendor's products",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns orders related to the vendor's products",
                 "consumes": [
                     "application/json"
                 ],
@@ -995,18 +1033,14 @@ const docTemplate = `{
                 "tags": [
                     "Vendor"
                 ],
-                "summary": "Get orders for a vendor",
+                "summary": "Get vendor's product orders",
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.OrderResponse"
                             }
                         }
                     },
@@ -1024,7 +1058,12 @@ const docTemplate = `{
         },
         "/vendor/upload": {
             "post": {
-                "description": "Upload a product image and metadata",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a product with metadata and image (multipart form)",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -1036,6 +1075,13 @@ const docTemplate = `{
                 ],
                 "summary": "Upload a product",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "file",
                         "description": "Product image",
@@ -1159,6 +1205,55 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "image_url": {
+                    "type": "string"
+                },
+                "material": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.OrderResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "productId": {
+                    "type": "string"
+                },
+                "productName": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totalPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
                     "type": "string"
                 },
                 "material": {

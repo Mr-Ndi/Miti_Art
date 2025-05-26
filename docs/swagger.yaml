@@ -38,6 +38,38 @@ definitions:
       price:
         type: number
     type: object
+  dto.OrderResponse:
+    properties:
+      createdAt:
+        type: string
+      orderId:
+        type: string
+      productId:
+        type: string
+      productName:
+        type: string
+      quantity:
+        type: integer
+      status:
+        type: string
+      totalPrice:
+        type: number
+    type: object
+  dto.ProductResponse:
+    properties:
+      category:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      material:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.VendorRegisterRequest:
     properties:
       ShopName:
@@ -557,17 +589,17 @@ paths:
       tags:
       - client
   /vendor/edit-product/{id}:
-    post:
+    patch:
       consumes:
       - application/json
-      description: Updates product fields for an existing product
+      description: Allows vendor to edit their product details
       parameters:
       - description: Product ID (UUID)
         in: path
         name: id
         required: true
         type: string
-      - description: Product updates
+      - description: Product update fields
         in: body
         name: body
         required: true
@@ -594,14 +626,16 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Edit a product
+      security:
+      - BearerAuth: []
+      summary: Edit product details
       tags:
       - Vendor
   /vendor/my-product/{id}:
-    post:
+    get:
       consumes:
       - application/json
-      description: Retrieves a product based on its ID
+      description: Retrieves a product by ID for the vendor
       parameters:
       - description: Product ID (UUID)
         in: path
@@ -613,7 +647,8 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/dto.ProductResponse'
         "400":
           description: Bad Request
           schema:
@@ -626,6 +661,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get a single product by ID
       tags:
       - Vendor
@@ -633,8 +670,13 @@ paths:
     post:
       consumes:
       - application/json
-      description: Vendor registration with token validation and details
+      description: Vendor registration using token and additional details
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Vendor registration data
         in: body
         name: request
@@ -656,6 +698,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "409":
           description: Conflict
           schema:
@@ -666,10 +714,10 @@ paths:
       tags:
       - Vendor
   /vendor/remove-product/{id}:
-    post:
+    delete:
       consumes:
       - application/json
-      description: Deletes a product by its ID (only vendor who owns it)
+      description: Deletes a vendor's product by ID
       parameters:
       - description: Product ID (UUID)
         in: path
@@ -697,6 +745,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a product
       tags:
       - Vendor
@@ -704,34 +754,38 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves all orders associated with the vendor's products
+      description: Returns orders related to the vendor's products
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
-        "400":
-          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            items:
+              $ref: '#/definitions/dto.OrderResponse'
+            type: array
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Get orders for a vendor
+      security:
+      - BearerAuth: []
+      summary: Get vendor's product orders
       tags:
       - Vendor
   /vendor/upload:
     post:
       consumes:
       - multipart/form-data
-      description: Upload a product image and metadata
+      description: Upload a product with metadata and image (multipart form)
       parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Product image
         in: formData
         name: image
@@ -784,6 +838,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Upload a product
       tags:
       - Vendor

@@ -16,13 +16,15 @@ import (
 
 // RegisterHandle godoc
 // @Summary Register a new vendor
-// @Description Vendor registration with token validation and details
+// @Description Vendor registration using token and additional details
 // @Tags Vendor
-// @Accept  json
-// @Produce  json
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer {token}"
 // @Param request body dto.VendorRegisterRequest true "Vendor registration data"
 // @Success 201 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Router /vendor/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
@@ -97,10 +99,11 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 
 // UploadHandle godoc
 // @Summary Upload a product
-// @Description Upload a product image and metadata
+// @Description Upload a product with metadata and image (multipart form)
 // @Tags Vendor
 // @Accept multipart/form-data
 // @Produce json
+// @Param Authorization header string true "Bearer {token}"
 // @Param image formData file true "Product image"
 // @Param name formData string true "Product name"
 // @Param category formData string true "Category"
@@ -110,6 +113,7 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
+// @Security BearerAuth
 // @Router /vendor/upload [post]
 func UploadHandle(c *gin.Context, db *gorm.DB) {
 	vendorID := c.MustGet("user_id").(uuid.UUID)
@@ -145,15 +149,16 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 
 // MyProduct godoc
 // @Summary Get a single product by ID
-// @Description Retrieves a product based on its ID
+// @Description Retrieves a product by ID for the vendor
 // @Tags Vendor
 // @Accept json
 // @Produce json
 // @Param id path string true "Product ID (UUID)"
-// @Success 200 {object} interface{}
+// @Success 200 {object} dto.ProductResponse
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
-// @Router /vendor/my-product/{id} [post]
+// @Security BearerAuth
+// @Router /vendor/my-product/{id} [get]
 func MyProduct(c *gin.Context, db *gorm.DB) {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -172,14 +177,14 @@ func MyProduct(c *gin.Context, db *gorm.DB) {
 }
 
 // MyOrders godoc
-// @Summary Get orders for a vendor
-// @Description Retrieves all orders associated with the vendor's products
+// @Summary Get vendor's product orders
+// @Description Returns orders related to the vendor's products
 // @Tags Vendor
 // @Accept json
 // @Produce json
-// @Success 200 {object} interface{}
-// @Failure 400 {object} map[string]string
+// @Success 200 {array} dto.OrderResponse
 // @Failure 404 {object} map[string]string
+// @Security BearerAuth
 // @Router /vendor/required-product [get]
 func MyOrders(c *gin.Context, db *gorm.DB) {
 	vendorID := c.MustGet("user_id").(uuid.UUID)
@@ -195,7 +200,7 @@ func MyOrders(c *gin.Context, db *gorm.DB) {
 
 // DeleteProduct godoc
 // @Summary Delete a product
-// @Description Deletes a product by its ID (only vendor who owns it)
+// @Description Deletes a vendor's product by ID
 // @Tags Vendor
 // @Accept json
 // @Produce json
@@ -203,7 +208,8 @@ func MyOrders(c *gin.Context, db *gorm.DB) {
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
-// @Router /vendor/remove-product/{id} [post]
+// @Security BearerAuth
+// @Router /vendor/remove-product/{id} [delete]
 func DeleteProduct(c *gin.Context, db *gorm.DB) {
 	vendorID := c.MustGet("user_id").(uuid.UUID)
 	idStr := c.Param("id")
@@ -223,17 +229,18 @@ func DeleteProduct(c *gin.Context, db *gorm.DB) {
 }
 
 // EditProduct godoc
-// @Summary Edit a product
-// @Description Updates product fields for an existing product
+// @Summary Edit product details
+// @Description Allows vendor to edit their product details
 // @Tags Vendor
 // @Accept json
 // @Produce json
 // @Param id path string true "Product ID (UUID)"
-// @Param body body dto.EditProductRequest true "Product updates"
+// @Param body body dto.EditProductRequest true "Product update fields"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 403 {object} map[string]string
-// @Router /vendor/edit-product/{id} [post]
+// @Security BearerAuth
+// @Router /vendor/edit-product/{id} [patch]
 func EditProduct(c *gin.Context, db *gorm.DB) {
 	vendorID := c.MustGet("user_id").(uuid.UUID)
 	idStr := c.Param("id")

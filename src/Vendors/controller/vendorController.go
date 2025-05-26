@@ -126,22 +126,24 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	file, err := c.FormFile("image")
+	fileHeader, err := c.FormFile("image")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Image file is required"})
 		return
 	}
 
-	// Simulate upload URL (replace with actual upload logic)
-	imageURL := "/uploads/" + file.Filename
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to open image"})
+		return
+	}
+	defer file.Close()
 
-	msg, err := service.RegisterProduct(db, vendorID, name, price, category, material, imageURL)
+	imageURL, err := utils.UploadToCloudinary(file, fileHeader.Filename)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": msg})
 }
 
 // MyProduct godoc

@@ -6,6 +6,15 @@ type VendorRegisterRequest struct {
 	ShopName       string `json:"ShopName" binding:"required"`
 }
 
+type RegisterResponse struct {
+	Message     string `json:"message"`
+	VendorEmail string `json:"vendorEmail"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 type EditProductRequest struct {
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`

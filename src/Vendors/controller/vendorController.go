@@ -6,7 +6,6 @@ import (
 	"MITI_ART/src/Vendors/service"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,26 +15,24 @@ import (
 
 // RegisterHandle godoc
 // @Summary Register a new vendor
-// @Description Vendor registration using token and additional details
+// @Description Vendor registration using token in query and form details in body
 // @Tags Vendor
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer {token}"
+// @Param token query string true "Invitation token sent via email"
 // @Param request body dto.VendorRegisterRequest true "Vendor registration data"
-// @Success 201 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 409 {object} map[string]string
+// @Success 201 {object} dto.RegisterResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 409 {object} dto.ErrorResponse
 // @Router /vendor/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
-	vendorToken := c.GetHeader("Authorization")
-	tokenParts := strings.Split(vendorToken, " ")
-	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid token format"})
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"Error": "Missing token in query"})
 		return
 	}
 
-	token := tokenParts[1]
 	payload, err := utils.ValidateToken(token)
 	// fmt.Printf("Decoded payload: %+v\n", payload)
 	if err != nil {

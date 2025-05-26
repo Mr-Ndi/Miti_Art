@@ -1,4 +1,15 @@
 definitions:
+  MITI_ART_src_Kibamba_dto.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request data!
+        type: string
+    type: object
+  MITI_ART_src_Vendors_dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   dto.ClientRegisterRequest:
     properties:
       clientEmail:
@@ -37,12 +48,6 @@ definitions:
         type: string
       price:
         type: number
-    type: object
-  dto.ErrorResponse:
-    properties:
-      error:
-        example: Invalid request data!
-        type: string
     type: object
   dto.InvitationInput:
     properties:
@@ -103,6 +108,13 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  dto.RegisterResponse:
+    properties:
+      message:
+        type: string
+      vendorEmail:
+        type: string
     type: object
   dto.VendorRegisterRequest:
     properties:
@@ -282,15 +294,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse'
       summary: Send vendor invitation
       tags:
       - admin
@@ -716,11 +728,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Vendor registration using token and additional details
+      description: Vendor registration using token in query and form details in body
       parameters:
-      - description: Bearer {token}
-        in: header
-        name: Authorization
+      - description: Invitation token sent via email
+        in: query
+        name: token
         required: true
         type: string
       - description: Vendor registration data
@@ -735,27 +747,19 @@ paths:
         "201":
           description: Created
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
       summary: Register a new vendor
       tags:
       - Vendor

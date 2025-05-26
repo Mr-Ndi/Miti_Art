@@ -257,19 +257,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse"
                         }
                     }
                 }
@@ -923,7 +923,7 @@ const docTemplate = `{
         },
         "/vendor/register": {
             "post": {
-                "description": "Vendor registration using token and additional details",
+                "description": "Vendor registration using token in query and form details in body",
                 "consumes": [
                     "application/json"
                 ],
@@ -937,9 +937,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {token}",
-                        "name": "Authorization",
-                        "in": "header",
+                        "description": "Invitation token sent via email",
+                        "name": "token",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -956,37 +956,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.RegisterResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     }
                 }
@@ -1194,6 +1182,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "MITI_ART_src_Kibamba_dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Invalid request data!"
+                }
+            }
+        },
+        "MITI_ART_src_Vendors_dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ClientRegisterRequest": {
             "type": "object",
             "required": [
@@ -1249,15 +1254,6 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
-                }
-            }
-        },
-        "dto.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "Invalid request data!"
                 }
             }
         },
@@ -1346,6 +1342,17 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "vendorEmail": {
+                    "type": "string"
                 }
             }
         },

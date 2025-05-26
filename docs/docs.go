@@ -375,10 +375,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.InvitationInput"
                         }
                     }
                 ],
@@ -1260,6 +1257,28 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.InvitationInput": {
+            "type": "object",
+            "required": [
+                "VendorEmail",
+                "VendorFirstName",
+                "VendorOtherName"
+            ],
+            "properties": {
+                "VendorEmail": {
+                    "type": "string",
+                    "example": "vendor@example.com"
+                },
+                "VendorFirstName": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "VendorOtherName": {
+                    "type": "string",
+                    "example": "Doe"
                 }
             }
         },

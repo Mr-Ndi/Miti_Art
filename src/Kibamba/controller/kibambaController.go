@@ -7,6 +7,7 @@ import (
 	"os"
 
 	utils "MITI_ART/Utils"
+	"MITI_ART/src/Kibamba/dto"
 	"MITI_ART/src/Kibamba/services"
 
 	"github.com/gin-gonic/gin"
@@ -59,24 +60,20 @@ func LoginHandler(c *gin.Context, db *gorm.DB) {
 // @Tags admin
 // @Accept json
 // @Produce json
-// @Param body body map[string]string true "Invitation input"
+// @Param body body dto.InvitationInput true "Invitation input"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Security BearerAuth
 // @Router /invite [post]
 func InvitationHandler(c *gin.Context) {
+	var req dto.InvitationInput
+
 	userEmail, exist := c.Get("userEmail")
-	_ = userEmail // suppress unused warning
+	_ = userEmail
 	if !exist {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Access"})
 		return
-	}
-
-	var req struct {
-		VendorEmail     string `json:"VendorEmail" binding:"required"`
-		VendorFirstName string `json:"VendorFirstName" binding:"required"`
-		VendorOtherName string `json:"VendorOtherName" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

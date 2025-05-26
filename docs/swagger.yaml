@@ -38,6 +38,22 @@ definitions:
       price:
         type: number
     type: object
+  dto.InvitationInput:
+    properties:
+      VendorEmail:
+        example: vendor@example.com
+        type: string
+      VendorFirstName:
+        example: John
+        type: string
+      VendorOtherName:
+        example: Doe
+        type: string
+    required:
+    - VendorEmail
+    - VendorFirstName
+    - VendorOtherName
+    type: object
   dto.OrderResponse:
     properties:
       createdAt:
@@ -315,9 +331,7 @@ paths:
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: string
-          type: object
+          $ref: '#/definitions/dto.InvitationInput'
       produces:
       - application/json
       responses:

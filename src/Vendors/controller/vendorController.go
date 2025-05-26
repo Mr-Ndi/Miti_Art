@@ -141,7 +141,10 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	defer file.Close()
 
 	// Upload to Cloudinary and get the secure URL
-	imageURL, err := utils.UploadToCloudinary(file, fileHeader.Filename)
+
+	filename := uuid.New().String() + "_" + fileHeader.Filename
+	imageURL, err := utils.UploadToCloudinary(file, filename)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Image upload failed: " + err.Error()})
 		return

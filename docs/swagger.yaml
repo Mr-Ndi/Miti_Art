@@ -50,10 +50,10 @@ definitions:
         example: vendor@example.com
         type: string
       VendorFirstName:
-        example: John
+        example: Ninshuti
         type: string
       VendorOtherName:
-        example: Doe
+        example: Poli
         type: string
     required:
     - VendorEmail

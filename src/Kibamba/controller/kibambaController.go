@@ -108,7 +108,6 @@ func InvitationHandler(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 403 {object} map[string]string
-// @Security BearerAuth
 // @Router /admin/view-clients [get]
 func ViewClients(c *gin.Context, db *gorm.DB) {
 	userEmail, exists := c.Get("user_email")

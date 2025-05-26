@@ -1280,11 +1280,11 @@ const docTemplate = `{
                 },
                 "VendorFirstName": {
                     "type": "string",
-                    "example": "John"
+                    "example": "Ninshuti"
                 },
                 "VendorOtherName": {
                     "type": "string",
-                    "example": "Doe"
+                    "example": "Poli"
                 }
             }
         },

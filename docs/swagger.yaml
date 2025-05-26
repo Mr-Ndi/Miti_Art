@@ -38,6 +38,12 @@ definitions:
       price:
         type: number
     type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request data!
+        type: string
+    type: object
   dto.InvitationInput:
     properties:
       VendorEmail:
@@ -53,6 +59,18 @@ definitions:
     - VendorEmail
     - VendorFirstName
     - VendorOtherName
+    type: object
+  dto.InviteResponse:
+    properties:
+      message:
+        example: Invitation sent successfully
+        type: string
+      sent_to:
+        example: vendor@example.com
+        type: string
+      status:
+        example: success
+        type: string
     type: object
   dto.OrderResponse:
     properties:
@@ -338,21 +356,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.InviteResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Send vendor invitation

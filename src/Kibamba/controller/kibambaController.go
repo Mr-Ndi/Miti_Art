@@ -61,9 +61,10 @@ func LoginHandler(c *gin.Context, db *gorm.DB) {
 // @Accept json
 // @Produce json
 // @Param body body dto.InvitationInput true "Invitation input"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
+// @Success 200 {object} dto.InviteResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Security BearerAuth
 // @Router /invite [post]
 func InvitationHandler(c *gin.Context) {

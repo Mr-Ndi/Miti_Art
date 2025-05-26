@@ -132,18 +132,29 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
+	// Open the uploaded image file
 	file, err := fileHeader.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to open image"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open image file"})
 		return
 	}
 	defer file.Close()
 
+	// Upload to Cloudinary and get the secure URL
 	imageURL, err := utils.UploadToCloudinary(file, fileHeader.Filename)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Image upload failed: " + err.Error()})
+		return
+	}
+
+	// Register product using the Cloudinary image URL
+	msg, err := service.RegisterProduct(db, vendorID, name, price, category, material, imageURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": msg})
 }
 
 // MyProduct godoc

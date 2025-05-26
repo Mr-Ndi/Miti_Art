@@ -63,6 +63,7 @@ func LoginHandler(c *gin.Context, db *gorm.DB) {
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
+// @Security BearerAuth
 // @Router /invite [post]
 func InvitationHandler(c *gin.Context) {
 	userEmail, exist := c.Get("userEmail")
@@ -109,6 +110,7 @@ func InvitationHandler(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 403 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/view-clients [get]
 func ViewClients(c *gin.Context, db *gorm.DB) {
 	userEmail, exists := c.Get("user_email")
@@ -131,6 +133,7 @@ func ViewClients(c *gin.Context, db *gorm.DB) {
 // @Tags admin
 // @Produce json
 // @Success 200 {object} map[string]interface{}
+// @Security BearerAuth
 // @Router /admin/view-vendors [get]
 func ViewVendors(c *gin.Context, db *gorm.DB) {
 	vendors, err := services.GetAllVendors(db)
@@ -147,6 +150,7 @@ func ViewVendors(c *gin.Context, db *gorm.DB) {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 403 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/view-orders [get]
 func ViewOrders(c *gin.Context, db *gorm.DB) {
 	userEmail, exists := c.Get("user_email")
@@ -169,6 +173,7 @@ func ViewOrders(c *gin.Context, db *gorm.DB) {
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Failure 403 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/view-products [get]
 func ViewAllProducts(c *gin.Context, db *gorm.DB) {
 	userEmail, exists := c.Get("user_email")
@@ -193,6 +198,7 @@ func ViewAllProducts(c *gin.Context, db *gorm.DB) {
 // @Param body body map[string]interface{} true "Vendor update input"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/edit-vendor [post]
 func EditVendor(c *gin.Context, db *gorm.DB) {
 	var input struct {
@@ -229,6 +235,7 @@ func EditVendor(c *gin.Context, db *gorm.DB) {
 // @Param body body map[string]interface{} true "Client update input"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/edit-client [post]
 func EditClient(c *gin.Context, db *gorm.DB) {
 	var input struct {
@@ -268,6 +275,7 @@ func EditClient(c *gin.Context, db *gorm.DB) {
 // @Param body body map[string]string true "Vendor ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/eliminate-vendor [post]
 func EliminateVendor(c *gin.Context, db *gorm.DB) {
 	var input struct {
@@ -302,6 +310,7 @@ func EliminateVendor(c *gin.Context, db *gorm.DB) {
 // @Param body body map[string]string true "Client ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Security BearerAuth
 // @Router /admin/eliminate-client [post]
 func EliminateClient(c *gin.Context, db *gorm.DB) {
 	var input struct {

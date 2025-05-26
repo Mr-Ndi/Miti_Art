@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/admin/edit-client": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -63,6 +68,11 @@ const docTemplate = `{
         },
         "/admin/edit-vendor": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -109,6 +119,11 @@ const docTemplate = `{
         },
         "/admin/eliminate-client": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -157,6 +172,11 @@ const docTemplate = `{
         },
         "/admin/eliminate-vendor": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -205,6 +225,11 @@ const docTemplate = `{
         },
         "/admin/view-clients": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -234,6 +259,11 @@ const docTemplate = `{
         },
         "/admin/view-orders": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -263,6 +293,11 @@ const docTemplate = `{
         },
         "/admin/view-products": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -292,6 +327,11 @@ const docTemplate = `{
         },
         "/admin/view-vendors": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -312,6 +352,11 @@ const docTemplate = `{
         },
         "/invite": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Sends invitation token to a vendor",
                 "consumes": [
                     "application/json"

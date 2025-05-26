@@ -123,6 +123,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Edit client info
       tags:
       - admin
@@ -153,6 +155,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Edit vendor info
       tags:
       - admin
@@ -184,6 +188,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a client
       tags:
       - admin
@@ -215,6 +221,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a vendor
       tags:
       - admin
@@ -234,6 +242,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: View all clients
       tags:
       - admin
@@ -253,6 +263,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: View all orders
       tags:
       - admin
@@ -272,6 +284,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: View all products
       tags:
       - admin
@@ -285,6 +299,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: View all vendors
       tags:
       - admin
@@ -323,6 +339,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Send vendor invitation
       tags:
       - admin

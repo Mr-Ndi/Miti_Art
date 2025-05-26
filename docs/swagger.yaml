@@ -97,16 +97,22 @@ definitions:
   dto.ProductResponse:
     properties:
       category:
+        example: Art
         type: string
       id:
+        example: 123e4567-e89b-12d3-a456-426614174000
         type: string
       imageUrl:
+        example: https://res.cloudinary.com/demo/image/upload/sample.jpg
         type: string
       material:
+        example: Oak Wood
         type: string
       name:
+        example: Wooden Sculpture
         type: string
       price:
+        example: 150.75
         type: number
     type: object
   dto.RegisterResponse:
@@ -829,34 +835,35 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Upload a product with metadata and image (multipart form)
+      description: Upload a product with metadata and an image (multipart/form-data).
+        Requires authentication.
       parameters:
-      - description: Bearer {token}
+      - description: Bearer access token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Product image
+      - description: Product image (jpg, png, etc.)
         in: formData
         name: image
         required: true
         type: file
-      - description: Product name
+      - description: Name of the product
         in: formData
         name: name
         required: true
         type: string
-      - description: Category
+      - description: Category of the product
         in: formData
         name: category
         required: true
         type: string
-      - description: Material
+      - description: Material used
         in: formData
         name: material
         required: true
         type: string
-      - description: Price
+      - description: Price of the product
         in: formData
         name: price
         required: true
@@ -867,27 +874,19 @@ paths:
         "201":
           description: Created
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ProductResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Upload a product

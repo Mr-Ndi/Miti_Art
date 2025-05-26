@@ -96,20 +96,20 @@ func RegisterHandle(c *gin.Context, db *gorm.DB) {
 
 // UploadHandle godoc
 // @Summary Upload a product
-// @Description Upload a product with metadata and image (multipart form)
+// @Description Upload a product with metadata and an image (multipart/form-data). Requires authentication.
 // @Tags Vendor
 // @Accept multipart/form-data
 // @Produce json
-// @Param Authorization header string true "Bearer {token}"
-// @Param image formData file true "Product image"
-// @Param name formData string true "Product name"
-// @Param category formData string true "Category"
-// @Param material formData string true "Material"
-// @Param price formData number true "Price"
-// @Success 201 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param Authorization header string true "Bearer access token"
+// @Param image formData file true "Product image (jpg, png, etc.)"
+// @Param name formData string true "Name of the product"
+// @Param category formData string true "Category of the product"
+// @Param material formData string true "Material used"
+// @Param price formData number true "Price of the product"
+// @Success 201 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Security BearerAuth
 // @Router /vendor/upload [post]
 func UploadHandle(c *gin.Context, db *gorm.DB) {

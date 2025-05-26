@@ -1077,7 +1077,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Upload a product with metadata and image (multipart form)",
+                "description": "Upload a product with metadata and an image (multipart/form-data). Requires authentication.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -1091,42 +1091,42 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer {token}",
+                        "description": "Bearer access token",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "file",
-                        "description": "Product image",
+                        "description": "Product image (jpg, png, etc.)",
                         "name": "image",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Product name",
+                        "description": "Name of the product",
                         "name": "name",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Category",
+                        "description": "Category of the product",
                         "name": "category",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Material",
+                        "description": "Material used",
                         "name": "material",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "number",
-                        "description": "Price",
+                        "description": "Price of the product",
                         "name": "price",
                         "in": "formData",
                         "required": true
@@ -1136,37 +1136,25 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ProductResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     }
                 }
@@ -1318,22 +1306,28 @@
             "type": "object",
             "properties": {
                 "category": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Art"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
                 "imageUrl": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
                 },
                 "material": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Oak Wood"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Wooden Sculpture"
                 },
                 "price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 150.75
                 }
             }
         },

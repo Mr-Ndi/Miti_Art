@@ -15,6 +15,14 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title My API
+// @version 1.0
+// @description This is my API using Gin, GORM, and Swagger
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and your token.
+
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

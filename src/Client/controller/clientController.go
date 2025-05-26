@@ -22,7 +22,7 @@ import (
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router //user/register [post]
+// @Router /user/register [post]
 func RegisterHandle(c *gin.Context, db *gorm.DB) {
 	var req dto.ClientRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -92,9 +92,6 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 
 // CreateOrder godoc
 // @Summary Create an order
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
 // @Description Places a new order for a given product and quantity (authentication required)
 // @Tags client
 // @Accept json
@@ -139,6 +136,7 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 // @Accept json
 // @Produce json
 // @Param body body dto.WishListRequest true "Wishlist request"
+// @Security BearerAuth
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -171,18 +169,19 @@ func AppendWishList(c *gin.Context, db *gorm.DB) {
 
 // ListUserOrders godoc
 // @Summary List user orders
-// @Description Gets a list of a user's orders with optional status and date filters (authentication required)
+// @Description Gets a list of a user's orders with optional filters (authentication required)
 // @Tags client
 // @Produce json
 // @Param userID path string true "User ID"
 // @Param status query string false "Order status"
 // @Param from query string false "Start date (RFC3339 format)"
 // @Param to query string false "End date (RFC3339 format)"
+// @Security BearerAuth
 // @Success 200 {array} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /user/orders/user/{userID} [get]
+// @Router /user/my-orders [get]
 func ListUserOrders(c *gin.Context, db *gorm.DB) {
 	_, exists := c.Get("userID")
 	if !exists {

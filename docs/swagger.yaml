@@ -60,48 +60,10 @@ definitions:
     type: object
 info:
   contact: {}
+  description: This is my API using Gin, GORM, and Swagger
+  title: My API
+  version: "1.0"
 paths:
-  //user/register:
-    post:
-      consumes:
-      - application/json
-      description: Registers a new client with email, name, and password
-      parameters:
-      - description: Client registration input
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ClientRegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Register a new client
-      tags:
-      - client
   /admin/edit-client:
     post:
       consumes:
@@ -422,48 +384,10 @@ paths:
       summary: Login user
       tags:
       - auth
-  /user/orders:
-    post:
-      consumes:
-      - application/json
-      description: Places a new order for a given product and quantity (authentication
-        required)
-      parameters:
-      - description: Order request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateOrderRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create an order
-      tags:
-      - client
-  /user/orders/user/{userID}:
+  /user/my-orders:
     get:
-      description: Gets a list of a user's orders with optional status and date filters
-        (authentication required)
+      description: Gets a list of a user's orders with optional filters (authentication
+        required)
       parameters:
       - description: User ID
         in: path
@@ -510,7 +434,88 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: List user orders
+      tags:
+      - client
+  /user/orders:
+    post:
+      consumes:
+      - application/json
+      description: Places a new order for a given product and quantity (authentication
+        required)
+      parameters:
+      - description: Order request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create an order
+      tags:
+      - client
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new client with email, name, and password
+      parameters:
+      - description: Client registration input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClientRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new client
       tags:
       - client
   /user/wishlist:
@@ -546,6 +551,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Add to wishlist
       tags:
       - client
@@ -780,4 +787,10 @@ paths:
       summary: Upload a product
       tags:
       - Vendor
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and your token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

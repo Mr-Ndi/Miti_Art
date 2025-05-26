@@ -568,6 +568,11 @@ const docTemplate = `{
         },
         "/user/orders": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Places a new order for a given product and quantity (authentication required)",
                 "consumes": [
                     "application/json"

@@ -92,11 +92,15 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 
 // CreateOrder godoc
 // @Summary Create an order
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 // @Description Places a new order for a given product and quantity (authentication required)
 // @Tags client
 // @Accept json
 // @Produce json
 // @Param body body dto.CreateOrderRequest true "Order request"
+// @Security BearerAuth
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string

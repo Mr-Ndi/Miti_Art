@@ -455,6 +455,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create an order
       tags:
       - client

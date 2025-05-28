@@ -1300,7 +1300,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "token": {
+<<<<<<< HEAD
                     "type": "string"
+=======
+                    "type": "string",
+                    "example": "eyJhbGciOi..."
+>>>>>>> 9349cc6 (Stable Aouthentication swagger, remote and local swagger)
                 }
             }
         },

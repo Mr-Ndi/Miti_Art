@@ -34,7 +34,13 @@ func init() {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Router /user/login [post]
+// LoginHandler handles user login requests
+// It validates the input, authenticates the user, and returns a JWT token if successful.
+// If the input is invalid or authentication fails, it returns an appropriate error response
 // LoginHandler handles user login requests
 // It validates the input, authenticates the user, and returns a JWT token if successful.
 // If the input is invalid or authentication fails, it returns an appropriate error response.
@@ -42,13 +48,17 @@ func LoginHandler(c *gin.Context, db *gorm.DB) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "Invalid request"})
 		return
 	}
 
 	token, err := services.Login(context.Background(), db, req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		if err.Error() == "unauthorized" {
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: "Invalid credentials"})
+		} else {
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "Something went wrong"})
+		}
 		return
 	}
 

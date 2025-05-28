@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	database "MITI_ART/configure"
 	route "MITI_ART/src/routes"
 
@@ -24,6 +26,11 @@ import (
 // @description Type "Bearer" followed by a space and your token.
 
 func main() {
+
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("⚠️  No .env file found or it failed to load")
+	}
+
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.SetTrustedProxies([]string{})
@@ -31,24 +38,17 @@ func main() {
 	corsConfig := cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"POST", "GET"},
-		AllowHeaders:     []string{"content-Type", "Authorization"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * 60 * 60,
 	}
 	r.Use(cors.New(corsConfig))
 
-	// Connect to DB
 	database.ConnectDB()
 
-	// App Routes
 	route.AllRoutes(r, database.DB)
 
-	// Swagger docs route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	fmt.Println("--------------------------------------------------------------")
-	fmt.Println("Connected to PostgreSQL and migrated successfully!")
-	fmt.Println("--------------------------------------------------------------")
 	host := os.Getenv("HOST")
 	if host == "" {
 		host = "localhost"
@@ -59,8 +59,12 @@ func main() {
 		port = "8080"
 	}
 
-	fmt.Printf("Server is running on: http://%s:%s\n", host, port)
-	fmt.Printf("Swagger docs available at: http://%s:%s/swagger/index.html\n", host, port)
-
-	r.Run(":8080")
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("Connected to PostgreSQL and migrated successfully!")
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Printf("Server is running on: https://%s:%s\n", host, port)
+	fmt.Println("Local Swagger docs available at: http://localhost:8080/swagger/index.html")
+	fmt.Printf("Swagger docs available at: https://%s:%s/swagger/index.html\n", host, port)
+	fmt.Println("--------------------------------------------------------------")
+	r.Run(":" + port)
 }

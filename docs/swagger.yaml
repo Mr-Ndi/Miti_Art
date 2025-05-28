@@ -93,6 +93,10 @@ definitions:
   dto.LoginResponse:
     properties:
       token:
+<<<<<<< HEAD
+=======
+        example: eyJhbGciOi...
+>>>>>>> 9349cc6 (Stable Aouthentication swagger, remote and local swagger)
         type: string
     type: object
   dto.OrderResponse:

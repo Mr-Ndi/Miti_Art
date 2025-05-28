@@ -615,7 +615,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/orders": {
+        "/user/order/{id}": {
             "post": {
                 "security": [
                     {
@@ -635,12 +635,19 @@ const docTemplate = `{
                 "summary": "Create an order",
                 "parameters": [
                     {
-                        "description": "Order request",
+                        "type": "string",
+                        "description": "Product ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Order quantity",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateOrderRequest"
+                            "$ref": "#/definitions/dto.OrderQuantityRequest"
                         }
                     }
                 ],
@@ -655,19 +662,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Client_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Client_dto.ErrorResponse"
                         }
                     }
                 }
@@ -1201,6 +1202,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "MITI_ART_src_Client_dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "MITI_ART_src_Kibamba_dto.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1256,21 +1265,6 @@ const docTemplate = `{
                 },
                 "clientPassword": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.CreateOrderRequest": {
-            "type": "object",
-            "required": [
-                "productID",
-                "quantity"
-            ],
-            "properties": {
-                "productID": {
-                    "type": "string"
-                },
-                "quantity": {
-                    "type": "integer"
                 }
             }
         },
@@ -1338,6 +1332,18 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.OrderQuantityRequest": {
+            "type": "object",
+            "required": [
+                "quantity"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 1
                 }
             }
         },

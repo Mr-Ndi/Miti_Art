@@ -1,4 +1,9 @@
 definitions:
+  MITI_ART_src_Client_dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   MITI_ART_src_Kibamba_dto.ErrorResponse:
     properties:
       error:
@@ -38,16 +43,6 @@ definitions:
     - clientFirstName
     - clientOtherName
     - clientPassword
-    type: object
-  dto.CreateOrderRequest:
-    properties:
-      productID:
-        type: string
-      quantity:
-        type: integer
-    required:
-    - productID
-    - quantity
     type: object
   dto.EditProductRequest:
     properties:
@@ -94,6 +89,14 @@ definitions:
     properties:
       token:
         type: string
+    type: object
+  dto.OrderQuantityRequest:
+    properties:
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - quantity
     type: object
   dto.OrderResponse:
     properties:
@@ -545,19 +548,24 @@ paths:
       summary: List user orders
       tags:
       - client
-  /user/orders:
+  /user/order/{id}:
     post:
       consumes:
       - application/json
       description: Places a new order for a given product and quantity (authentication
         required)
       parameters:
-      - description: Order request
+      - description: Product ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Order quantity
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateOrderRequest'
+          $ref: '#/definitions/dto.OrderQuantityRequest'
       produces:
       - application/json
       responses:
@@ -569,15 +577,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Client_dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Client_dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create an order

@@ -96,14 +96,24 @@ func GetFurnitureDetails(c *gin.Context, db *gorm.DB) {
 // @Tags client
 // @Accept json
 // @Produce json
-// @Param body body dto.CreateOrderRequest true "Order request"
+// @Param id path string true "Product ID (UUID)"
+// @Param body body dto.OrderQuantityRequest true "Order quantity"
 // @Security BearerAuth
 // @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Router /user/orders [post]
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Router /user/order/{id} [post]
 func CreateOrder(c *gin.Context, db *gorm.DB) {
-	var req dto.OrderRequest
+	productIDStr := c.Param("id")
+	productID, err := uuid.Parse(productIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	var req struct {
+		Quantity int `json:"quantity"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
@@ -116,7 +126,7 @@ func CreateOrder(c *gin.Context, db *gorm.DB) {
 	}
 	userID := userIDAny.(uuid.UUID)
 
-	orderID, amount, message, err := service.HandleOrder(db, req.ProductID, req.Quantity, userID)
+	orderID, amount, message, err := service.HandleOrder(db, productID, req.Quantity, userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

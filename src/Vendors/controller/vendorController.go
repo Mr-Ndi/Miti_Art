@@ -171,8 +171,7 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 // @Security BearerAuth
 // @Router /vendor/my-products [get]
 func MyProducts(c *gin.Context, db *gorm.DB) {
-	// Get vendor ID from JWT (middleware context)
-	vendorIDValue, exists := c.Get("userID")
+	vendorIDValue, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized - user ID missing"})
 		return

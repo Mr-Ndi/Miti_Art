@@ -1,10 +1,11 @@
 package dto
 
 type ProductResponse struct {
-	ID       string  `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name     string  `json:"name" example:"Wooden Sculpture"`
-	Category string  `json:"category" example:"Art"`
-	Material string  `json:"material" example:"Oak Wood"`
-	Price    float64 `json:"price" example:"150.75"`
-	ImageURL string  `json:"imageUrl" example:"https://res.cloudinary.com/demo/image/upload/sample.jpg"`
+	ID       string  `json:"id"` // converted from uuid.UUID
+	Name     string  `json:"name"`
+	Price    float64 `json:"price"`
+	Category string  `json:"category"`
+	Material string  `json:"material"`
+	ImageURL string  `json:"image_url"`
+	VendorID string  `json:"vendor_id"` // also converted from uuid.UUID
 }

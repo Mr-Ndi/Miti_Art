@@ -173,20 +173,35 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 // @Security BearerAuth
 // @Router /vendor/my-product/{id} [get]
 func MyProduct(c *gin.Context, db *gorm.DB) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	// Parse product ID from path
+	productIDStr := c.Param("id")
+	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID format"})
 		return
 	}
 
-	product, err := service.ProductByVendorID(db, id)
+	// Get vendor ID from context (set by AuthMiddleware)
+	vendorIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized - user ID missing"})
+		return
+	}
+
+	vendorID, ok := vendorIDValue.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	// Fetch the product belonging to this vendor
+	product, err := service.ProductByVendorID(db, productID, vendorID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, product)
+	c.JSON(http.StatusOK, product) // can be dto.ProductResponse or models.Product depending on your choice
 }
 
 // MyOrders godoc

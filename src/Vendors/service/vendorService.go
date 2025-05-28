@@ -102,15 +102,12 @@ func RegisterProduct(db *gorm.DB, VendorID uuid.UUID, ProductName string, Produc
 }
 
 // All products uploaded by the vendor
-func ProductByVendorID(db *gorm.DB, id uuid.UUID) (*models.Product, error) {
+func ProductByVendorID(db *gorm.DB, productID uuid.UUID, vendorID uuid.UUID) (*models.Product, error) {
 	var product models.Product
-	err := db.First(&product, "id = ?", id).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("product not found with ID: %s", id)
+	if err := db.Where("id = ? AND vendor_id = ?", productID, vendorID).First(&product).Error; err != nil {
+		return nil, errors.New("product not found or does not belong to vendor")
 	}
-
-	return &product, err
+	return &product, nil
 }
 
 // All orders ordered from the vendor

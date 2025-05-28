@@ -1326,28 +1326,27 @@
             "type": "object",
             "properties": {
                 "category": {
-                    "type": "string",
-                    "example": "Art"
+                    "type": "string"
                 },
                 "id": {
-                    "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                    "description": "converted from uuid.UUID",
+                    "type": "string"
                 },
-                "imageUrl": {
-                    "type": "string",
-                    "example": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
+                "image_url": {
+                    "type": "string"
                 },
                 "material": {
-                    "type": "string",
-                    "example": "Oak Wood"
+                    "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "example": "Wooden Sculpture"
+                    "type": "string"
                 },
                 "price": {
-                    "type": "number",
-                    "example": 150.75
+                    "type": "number"
+                },
+                "vendor_id": {
+                    "description": "also converted from uuid.UUID",
+                    "type": "string"
                 }
             }
         },

@@ -29,18 +29,15 @@ func init() {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param body body map[string]string true "Login input"
-// @Success 200 {object} map[string]string
+// @Param body body dto.LoginRequest true "Login input"
+// @Success 200 {object} dto.LoginResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Router /user/login [post]
 func LoginHandler(c *gin.Context, db *gorm.DB) {
-	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var req dto.LoginRequest
 
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
@@ -51,7 +48,7 @@ func LoginHandler(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, dto.LoginResponse{Token: token})
 }
 
 // InvitationHandler godoc

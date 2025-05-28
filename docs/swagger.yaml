@@ -5,6 +5,19 @@ definitions:
         example: Invalid request data!
         type: string
     type: object
+  MITI_ART_src_Kibamba_dto.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secret123
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
   MITI_ART_src_Vendors_dto.ErrorResponse:
     properties:
       error:
@@ -75,6 +88,11 @@ definitions:
         type: string
       status:
         example: success
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      token:
         type: string
     type: object
   dto.OrderResponse:
@@ -453,30 +471,26 @@ paths:
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: string
-          type: object
+          $ref: '#/definitions/MITI_ART_src_Kibamba_dto.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.LoginResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse'
       summary: Login user
       tags:
       - auth

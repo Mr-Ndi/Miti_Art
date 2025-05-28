@@ -8,5 +8,5 @@ type LoginRequest struct {
 
 // LoginResponse represents login output (token)
 type LoginResponse struct {
-	Token string `json:"token" example:"eyJhbGciOi..."`
+	Token string `json:"token" Urugero:"eyJhbGciOi..."`
 }

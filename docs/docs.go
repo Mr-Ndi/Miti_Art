@@ -500,10 +500,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.LoginRequest"
                         }
                     }
                 ],
@@ -511,28 +508,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.LoginResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/MITI_ART_src_Kibamba_dto.ErrorResponse"
                         }
                     }
                 }
@@ -1179,6 +1173,24 @@ const docTemplate = `{
                 }
             }
         },
+        "MITI_ART_src_Kibamba_dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6,
+                    "example": "secret123"
+                }
+            }
+        },
         "MITI_ART_src_Vendors_dto.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1281,6 +1293,14 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         },

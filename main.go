@@ -46,12 +46,21 @@ func main() {
 	// Swagger docs route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	var Server = os.Getenv("Server")
 	fmt.Println("--------------------------------------------------------------")
 	fmt.Println("Connected to PostgreSQL and migrated successfully!")
 	fmt.Println("--------------------------------------------------------------")
-	fmt.Println("Server is running on: http://localhost:8080")
-	fmt.Printf("Swagger docs available at: %s:/swagger/index.html\n", Server)
+	host := os.Getenv("HOST")
+	if host == "" {
+		host = "localhost"
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Printf("Server is running on: http://%s:%s\n", host, port)
+	fmt.Printf("Swagger docs available at: http://%s:%s/swagger/index.html\n", host, port)
 
 	r.Run(":8080")
 }

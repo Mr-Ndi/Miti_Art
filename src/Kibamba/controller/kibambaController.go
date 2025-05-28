@@ -31,9 +31,13 @@ func init() {
 // @Produce json
 // @Param body body dto.LoginRequest true "Login input"
 // @Success 200 {object} dto.LoginResponse
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Router /user/login [post]
+// LoginHandler handles user login requests
+// It validates the input, authenticates the user, and returns a JWT token if successful.
+// If the input is invalid or authentication fails, it returns an appropriate error response.
 func LoginHandler(c *gin.Context, db *gorm.DB) {
 	var req dto.LoginRequest
 

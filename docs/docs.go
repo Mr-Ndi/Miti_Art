@@ -867,7 +867,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves a product by ID for the vendor",
+                "description": "Retrieves a single product created by the authenticated vendor",
                 "consumes": [
                     "application/json"
                 ],
@@ -897,19 +897,56 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor/my-products": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all products created by the authenticated vendor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendor"
+                ],
+                "summary": "Get all products for the vendor",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ProductResponse"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse"
                         }
                     }
                 }
@@ -1337,7 +1374,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "converted from uuid.UUID",
                     "type": "string"
                 },
                 "image_url": {
@@ -1353,7 +1389,6 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "vendor_id": {
-                    "description": "also converted from uuid.UUID",
                     "type": "string"
                 }
             }

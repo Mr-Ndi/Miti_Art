@@ -11,9 +11,9 @@ type RegisterResponse struct {
 	VendorEmail string `json:"vendorEmail"`
 }
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
+// type ErrorResponse struct {
+// 	Error string `json:"error"`
+// }
 
 type EditProductRequest struct {
 	Name     string  `json:"name"`

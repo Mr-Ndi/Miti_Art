@@ -117,7 +117,6 @@ definitions:
       category:
         type: string
       id:
-        description: converted from uuid.UUID
         type: string
       image_url:
         type: string
@@ -128,7 +127,6 @@ definitions:
       price:
         type: number
       vendor_id:
-        description: also converted from uuid.UUID
         type: string
     type: object
   dto.RegisterResponse:
@@ -711,7 +709,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves a product by ID for the vendor
+      description: Retrieves a single product created by the authenticated vendor
       parameters:
       - description: Product ID (UUID)
         in: path
@@ -728,18 +726,41 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get a single product by ID
+      tags:
+      - Vendor
+  /vendor/my-products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all products created by the authenticated vendor
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ProductResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/MITI_ART_src_Vendors_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all products for the vendor
       tags:
       - Vendor
   /vendor/register:

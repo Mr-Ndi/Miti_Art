@@ -101,13 +101,22 @@ func RegisterProduct(db *gorm.DB, VendorID uuid.UUID, ProductName string, Produc
 	return "Product registered successfully", nil
 }
 
-// All products uploaded by the vendor
 func ProductByVendorID(db *gorm.DB, productID uuid.UUID, vendorID uuid.UUID) (*models.Product, error) {
 	var product models.Product
 	if err := db.Where("id = ? AND vendor_id = ?", productID, vendorID).First(&product).Error; err != nil {
 		return nil, errors.New("product not found or does not belong to vendor")
 	}
 	return &product, nil
+}
+
+// All products uploaded by the vendor
+func AllProductsByVendor(db *gorm.DB, vendorID uuid.UUID) ([]models.Product, error) {
+	var products []models.Product
+	err := db.Where("vendor_id = ?", vendorID).Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
 }
 
 // All orders ordered from the vendor

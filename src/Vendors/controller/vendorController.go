@@ -160,28 +160,18 @@ func UploadHandle(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusCreated, gin.H{"message": msg})
 }
 
-// MyProduct godoc
-// @Summary Get a single product by ID
-// @Description Retrieves a product by ID for the vendor
+// MyProducts godoc
+// @Summary Get all products for the vendor
+// @Description Retrieves all products created by the authenticated vendor
 // @Tags Vendor
 // @Accept json
 // @Produce json
-// @Param id path string true "Product ID (UUID)"
-// @Success 200 {object} dto.ProductResponse
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
+// @Success 200 {array} dto.ProductResponse
+// @Failure 401 {object} dto.ErrorResponse
 // @Security BearerAuth
-// @Router /vendor/my-product/{id} [get]
-func MyProduct(c *gin.Context, db *gorm.DB) {
-	// Parse product ID from path
-	productIDStr := c.Param("id")
-	productID, err := uuid.Parse(productIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID format"})
-		return
-	}
-
-	// Get vendor ID from context (set by AuthMiddleware)
+// @Router /vendor/my-products [get]
+func MyProducts(c *gin.Context, db *gorm.DB) {
+	// Get vendor ID from JWT (middleware context)
 	vendorIDValue, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized - user ID missing"})
@@ -194,14 +184,59 @@ func MyProduct(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// Fetch the product belonging to this vendor
+	// Fetch all products belonging to this vendor
+	products, err := service.AllProductsByVendor(db, vendorID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
+}
+
+// MyProduct godoc
+// @Summary Get a single product by ID
+// @Description Retrieves a single product created by the authenticated vendor
+// @Tags Vendor
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID (UUID)"
+// @Success 200 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Security BearerAuth
+// @Router /vendor/my-product/{id} [get]
+func MyProduct(c *gin.Context, db *gorm.DB) {
+	// Parse product ID from URL path
+	productIDStr := c.Param("id")
+	productID, err := uuid.Parse(productIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID format"})
+		return
+	}
+
+	// Get vendor ID from JWT token (AuthMiddleware sets it in context)
+	vendorIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized - user ID missing"})
+		return
+	}
+
+	vendorID, ok := vendorIDValue.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	// Retrieve the product owned by this vendor
 	product, err := service.ProductByVendorID(db, productID, vendorID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, product) // can be dto.ProductResponse or models.Product depending on your choice
+	c.JSON(http.StatusOK, product)
 }
 
 // MyOrders godoc

@@ -38,9 +38,15 @@ func GenerateToken(payload map[string]interface{}) (string, error) {
 	expiration := time.Now().Add(time.Hour).Unix()
 	payload["exp"] = expiration
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"payload": payload,
-	})
+	claims := jwt.MapClaims{}
+
+	for key, value := range payload {
+		claims[key] = value
+	}
+
+	claims["exp"] = time.Now().Add(time.Hour).Unix()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(secret))
 }

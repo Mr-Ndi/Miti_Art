@@ -216,7 +216,7 @@ func MyProduct(c *gin.Context, db *gorm.DB) {
 	}
 
 	// Get vendor ID from JWT token (AuthMiddleware sets it in context)
-	vendorIDValue, exists := c.Get("userID")
+	vendorIDValue, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized - user ID missing"})
 		return

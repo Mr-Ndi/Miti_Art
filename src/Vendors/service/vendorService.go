@@ -101,6 +101,7 @@ func RegisterProduct(db *gorm.DB, VendorID uuid.UUID, ProductName string, Produc
 	return "Product registered successfully", nil
 }
 
+// A single products uploaded by the vendor
 func ProductByVendorID(db *gorm.DB, productID uuid.UUID, vendorID uuid.UUID) (*models.Product, error) {
 	var product models.Product
 	if err := db.Where("id = ? AND vendor_id = ?", productID, vendorID).First(&product).Error; err != nil {

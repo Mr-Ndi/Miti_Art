@@ -69,10 +69,6 @@ func ValidateToken(tokenString string) (map[string]interface{}, error) {
 		return nil, errors.New("invalid token claims structure")
 	}
 
-	payload, ok := claims["payload"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("missing payload in token")
-	}
+	return claims, nil
 
-	return payload, nil
 }
